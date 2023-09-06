@@ -1,6 +1,9 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
@@ -33,7 +36,19 @@ public class MainVindowViewModel : INotifyPropertyChanged
         }
     }
 
-
+    public MainVindowViewModel()
+    {
+        CurrentImageRectangles.Add(new RectangleInfo
+        {
+            Height = 10,
+            Width = 23, XX = 123,
+            StartPoint = new Point()
+            {
+                X = 500,
+                Y = 250
+            }
+        });
+    }
 
     /// <summary>
     /// Метод очистки поля для изображения
@@ -58,6 +73,58 @@ public class MainVindowViewModel : INotifyPropertyChanged
             AllowMultiple = false
         });
 
-        SourceImage = new Bitmap(files.First().Path.LocalPath);
+        var firstFile = files.First();
+
+        SourceImage = new Bitmap(firstFile.Path.LocalPath);
+        CreateRectangles(firstFile.Name.ToString());
     }
+
+    public ObservableCollection<RectangleInfo> CurrentImageRectangles { get; set; }
+        = new ObservableCollection<RectangleInfo>();
+
+    /// <summary>
+    /// Для создания прямоугольников на изображении 
+    /// (ошибки на плате)
+    /// </summary>
+    private void CreateRectangles(string name)
+    {
+        if (name == "image3.webp")
+        {
+            CurrentImageRectangles.Add(new RectangleInfo
+            {
+                Height = 10,
+                Width = 23,
+                StartPoint = new Point()
+                {
+                    X = 500,
+                    Y = 250
+                }
+            });
+        }
+    }
+
+
+
+    public void CreateKeyDown(PointerEventArgs args)
+    {
+        //var piotnt = () .GetPosition(CNV);
+        //System.Diagnostics.Debug.WriteLine
+    }
+}
+
+
+public class RectangleInfo
+{
+    public Point StartPoint { get; set; }
+
+    public double Width { get; set; }
+    public double XX { get; set; }
+
+    public double Height { get; set; }
+}
+
+public class Point
+{
+    public double X { get; set; }
+    public double Y { get; set; }
 }

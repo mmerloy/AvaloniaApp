@@ -85,33 +85,52 @@
 			</HeaderedContentControl>
 
 			<StackPanel Orientation="Horizontal">
-				<Button Content="Очистить" 
+				<Button Content="Очистить"
 						Margin="20 10 40 10"
 						Command="{Binding ClearImage}"/>
 				<Button Content="Распознать"/>
 			</StackPanel>
 		</StackPanel>
-		
+
+
 		<!--Для окошка с картинкой-->
 		<Border BorderThickness="2" BorderBrush="Gray"
-				Margin="20"
+				Margin="20" x:Name="brd"
 				>
 			<Border.Background>
-				<ImageBrush Source="{Binding SourceImage}">
-					<!--<Image x:Name="ImageFieldControll"
-					   Canvas.Left="0" Canvas.Top="0"/>-->
-
-				</ImageBrush>
+				<ImageBrush Source="{Binding SourceImage}"/>
 			</Border.Background>
 			<!--Width="{Binding #ImageFieldControll.Source.Size.Width}"
 				Height="{Binding #ImageFieldControll.Source.Size.Height}">-->
-			<Canvas>
+			<ItemsControl ItemsSource="{Binding CurrentImageRectangles}"
+						  Width="{Binding SourceImage.Size.Width}"
+						  Height="{Binding SourceImage.Size.Height}" 
+						  x:Name="CNV">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type vm:RectangleInfo}">
+						<Rectangle Width="{Binding Width}"
+								   Height="{Binding Height}"
+								   Canvas.Left="{Binding XX}"
+								   Canvas.Top="{Binding StartPoint.Y}"
+								   Stroke="Red" StrokeThickness="2"/>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
 
-				
-				<Rectangle Width="63" Height="41"
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<Canvas/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+
+				<!--<ItemsControl.Items>
+					<Rectangle Width="63" Height="41"
 						   Canvas.Left="40" Canvas.Top="31"
 						   Stroke="Red" StrokeThickness="2"/>
-			</Canvas>
+					<Rectangle Width="63" Height="41"
+						   Canvas.Left="80" Canvas.Top="31"
+						   Stroke="Red" StrokeThickness="2"/>
+				</ItemsControl.Items>-->
+			</ItemsControl>
 
 		</Border>
 
