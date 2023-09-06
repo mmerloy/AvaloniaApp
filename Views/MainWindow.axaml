@@ -25,8 +25,9 @@
 		<StackPanel DockPanel.Dock="Right" Margin="10">
 			<Button DockPanel.Dock="Top" HorizontalAlignment="Center"
 					Content="Загрузить изображение"
-					Margin="0 10"/>
-					<!--Click="SetImageAsync"-->
+					Margin="0 10"
+					Command="{Binding SetImageAsync}"
+				/>
 
 
 			<HeaderedContentControl Header="Укажите тип объекта"
@@ -86,8 +87,7 @@
 			<StackPanel Orientation="Horizontal">
 				<Button Content="Очистить" 
 						Margin="20 10 40 10"
-						/>
-						<!--Click="ClearImage"-->
+						Command="{Binding ClearImage}"/>
 				<Button Content="Распознать"/>
 			</StackPanel>
 		</StackPanel>
