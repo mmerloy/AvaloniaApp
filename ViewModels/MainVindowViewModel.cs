@@ -2,7 +2,8 @@
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-namespace AvaloniaFirstApp;
+
+namespace AvaloniaFirstApp.ViewModels;
 
 
 /// <summary>
