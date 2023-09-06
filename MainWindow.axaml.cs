@@ -18,23 +18,23 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void ClearImage(object sender, RoutedEventArgs e)
-    {
-        ImageFieldControll.Source = null;
-    }
+    //private void ClearImage(object sender, RoutedEventArgs e)
+    //{
+    //    ImageFieldControll.Source = null;
+    //}
 
 
-    private async void SetImageAsync(object sender, RoutedEventArgs e)
-    {
-        var topLevel = TopLevel.GetTopLevel(this);
+    //private async void SetImageAsync(object sender, RoutedEventArgs e)
+    //{
+    //    var topLevel = TopLevel.GetTopLevel(this);
 
-        // Start async operation to open the dialog.
-        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Open Image File",
-            AllowMultiple = false
-        });
+    //    // Start async operation to open the dialog.
+    //    var files = await topLevel!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+    //    {
+    //        Title = "Open Image File",
+    //        AllowMultiple = false
+    //    });
 
-        ImageFieldControll.Source = new Bitmap(files.First().Path.LocalPath);
-    }
+    //    ImageFieldControll.Source = new Bitmap(files.First().Path.LocalPath);
+    //}
 }

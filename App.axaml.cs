@@ -18,10 +18,10 @@ public partial class App : Application
             desktop.MainWindow = new MainWindow()
             {
                 DataContext = new MainVindowViewModel()
-                {
-                    MyDoubleValue = 119293.111,
-                    SomeText = "Hello!",
-                }
+                //{
+                //    MyDoubleValue = 119293.111,
+                //    SomeText = "Hello!",
+                //}
             };
         }
 

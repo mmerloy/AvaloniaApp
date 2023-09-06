@@ -25,8 +25,8 @@
 		<StackPanel DockPanel.Dock="Right" Margin="10">
 			<Button DockPanel.Dock="Top" HorizontalAlignment="Center"
 					Content="Загрузить изображение"
-					Margin="0 10"
-					Click="SetImageAsync"/>
+					Margin="0 10"/>
+					<!--Click="SetImageAsync"-->
 
 
 			<HeaderedContentControl Header="Укажите тип объекта"
@@ -86,8 +86,8 @@
 			<StackPanel Orientation="Horizontal">
 				<Button Content="Очистить" 
 						Margin="20 10 40 10"
-						Click="ClearImage"
 						/>
+						<!--Click="ClearImage"-->
 				<Button Content="Распознать"/>
 			</StackPanel>
 		</StackPanel>
@@ -95,16 +95,23 @@
 		<!--Для окошка с картинкой-->
 		<Border BorderThickness="2" BorderBrush="Gray"
 				Margin="20"
-				Width="{Binding #ImageFieldControll.Source.Size.Width}"
-				Height="{Binding #ImageFieldControll.Source.Size.Height}">
+				>
+			<Border.Background>
+				<ImageBrush Source="{Binding SourceImage}">
+					<!--<Image x:Name="ImageFieldControll"
+					   Canvas.Left="0" Canvas.Top="0"/>-->
+
+				</ImageBrush>
+			</Border.Background>
+			<!--Width="{Binding #ImageFieldControll.Source.Size.Width}"
+				Height="{Binding #ImageFieldControll.Source.Size.Height}">-->
 			<Canvas>
 
-				<Image x:Name="ImageFieldControll"
-					   Canvas.Left="0" Canvas.Top="0"/>
-				<Rectangle Width="63" Height="41" 
+				
+				<Rectangle Width="63" Height="41"
 						   Canvas.Left="40" Canvas.Top="31"
 						   Stroke="Red" StrokeThickness="2"/>
-					</Canvas>
+			</Canvas>
 
 		</Border>
 
