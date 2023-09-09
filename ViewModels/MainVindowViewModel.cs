@@ -2,7 +2,6 @@
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -36,27 +35,13 @@ public class MainVindowViewModel : INotifyPropertyChanged
         }
     }
 
-    public MainVindowViewModel()
-    {
-        CurrentImageRectangles.Add(new RectangleInfo
-        {
-            Height = 10,
-            Width = 23, XX = 123,
-            StartPoint = new Point()
-            {
-                X = 500,
-                Y = 250
-            }
-        });
-    }
-
     /// <summary>
     /// Метод очистки поля для изображения
     /// </summary>
     public void ClearImage()
     {
         SourceImage = null;
-
+        CurrentImageRectangles.Clear();
     }
 
     /// <summary>
@@ -64,6 +49,7 @@ public class MainVindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async void SetImageAsync()
     {
+        ClearImage();
         var topLevel = TopLevel.GetTopLevel(App.MainWindow);
 
         // Start async operation to open the dialog.
@@ -88,19 +74,35 @@ public class MainVindowViewModel : INotifyPropertyChanged
     /// </summary>
     private void CreateRectangles(string name)
     {
+        var rect = new RectangleInfo
+        {
+            Height = 10,
+            Width = 23,
+            StartPoint = new Point()
+            {
+                X = 100,
+                Y = 50
+            }
+        };
+        CurrentImageRectangles.Add(rect);
+
+
         if (name == "image3.webp")
         {
-            CurrentImageRectangles.Add(new RectangleInfo
-            {
-                Height = 10,
-                Width = 23,
-                StartPoint = new Point()
-                {
-                    X = 500,
-                    Y = 250
-                }
-            });
+            rect.Width = 5;
+            rect.Height = 12;
+            rect.StartPoint.X = 10;
+            rect.StartPoint.Y = 12;
         }
+        else if (name == "image2.webp")
+        {
+            rect.Width = 20;
+            rect.Height = 5;
+            rect.StartPoint.X = 20;
+            rect.StartPoint.Y = 32;
+        }
+
+        CurrentImageRectangles.Add(rect);
     }
 
 
@@ -115,7 +117,7 @@ public class MainVindowViewModel : INotifyPropertyChanged
 
 public class RectangleInfo
 {
-    public Point StartPoint { get; set; }
+    public Point? StartPoint { get; set; }
 
     public double Width { get; set; }
     public double XX { get; set; }

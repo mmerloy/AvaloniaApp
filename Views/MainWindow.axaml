@@ -7,8 +7,9 @@
         x:Class="AvaloniaFirstApp.MainWindow"
         Title="AvaloniaFirstApp" FontFamily="Times new roman"
 		x:DataType="vm:MainVindowViewModel"
+		WindowState="Maximized"
 		>
-
+	
 	<!---->
 	<DockPanel>
 
@@ -92,47 +93,38 @@
 			</StackPanel>
 		</StackPanel>
 
-
 		<!--Для окошка с картинкой-->
-		<Border BorderThickness="2" BorderBrush="Gray"
-				Margin="20" x:Name="brd"
-				>
-			<Border.Background>
-				<ImageBrush Source="{Binding SourceImage}"/>
-			</Border.Background>
-			<!--Width="{Binding #ImageFieldControll.Source.Size.Width}"
-				Height="{Binding #ImageFieldControll.Source.Size.Height}">-->
-			<ItemsControl ItemsSource="{Binding CurrentImageRectangles}"
-						  Width="{Binding SourceImage.Size.Width}"
-						  Height="{Binding SourceImage.Size.Height}" 
-						  x:Name="CNV">
-				<ItemsControl.ItemTemplate>
-					<DataTemplate DataType="{x:Type vm:RectangleInfo}">
-						<Rectangle Width="{Binding Width}"
-								   Height="{Binding Height}"
-								   Canvas.Left="{Binding XX}"
-								   Canvas.Top="{Binding StartPoint.Y}"
-								   Stroke="Red" StrokeThickness="2"/>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
+		<ItemsControl ItemsSource="{Binding CurrentImageRectangles}"
+					BorderThickness="2" BorderBrush="Gray"
+					Margin="14" x:CompileBindings="False">
 
-				<ItemsControl.ItemsPanel>
-					<ItemsPanelTemplate>
-						<Canvas/>
-					</ItemsPanelTemplate>
-				</ItemsControl.ItemsPanel>
+			<ItemsControl.ItemsPanel>
+				<ItemsPanelTemplate>
+					<Canvas>
+						<Canvas.Background>
+							<ImageBrush Source="{Binding SourceImage}"/>
+						</Canvas.Background>
+					</Canvas>
+				</ItemsPanelTemplate>
+			</ItemsControl.ItemsPanel>
 
-				<!--<ItemsControl.Items>
-					<Rectangle Width="63" Height="41"
-						   Canvas.Left="40" Canvas.Top="31"
-						   Stroke="Red" StrokeThickness="2"/>
-					<Rectangle Width="63" Height="41"
-						   Canvas.Left="80" Canvas.Top="31"
-						   Stroke="Red" StrokeThickness="2"/>
-				</ItemsControl.Items>-->
-			</ItemsControl>
+			<ItemsControl.Styles>
+				<Style Selector="ItemsControl > ContentPresenter">
+					<Setter Property="Canvas.Left" Value="{Binding StartPoint.X}"/>
+					<Setter Property="Canvas.Top" Value="{Binding StartPoint.Y}"/>
+				</Style>
+			</ItemsControl.Styles>
+			
+			<ItemsControl.ItemTemplate>
+				<DataTemplate DataType="{x:Type vm:RectangleInfo}">
+					<Rectangle Width="{Binding Width}"
+							   Height="{Binding Height}"
+							   Stroke="Red" StrokeThickness="2"/>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+			
 
-		</Border>
-
+			
+		</ItemsControl>
 	</DockPanel>
 </Window>
