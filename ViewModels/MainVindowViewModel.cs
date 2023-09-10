@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -78,7 +78,7 @@ public class MainVindowViewModel : INotifyPropertyChanged
         {
             Height = 10,
             Width = 23,
-            StartPoint = new Point()
+            StartPoint = new RectangPoint()
             {
                 X = 100,
                 Y = 50
@@ -105,27 +105,37 @@ public class MainVindowViewModel : INotifyPropertyChanged
         CurrentImageRectangles.Add(rect);
     }
 
-
-
-    public void CreateKeyDown(PointerEventArgs args)
+    public void AddRectangleToImage(double startX, double startY, double endX, double endY)
     {
-        //var piotnt = () .GetPosition(CNV);
-        //System.Diagnostics.Debug.WriteLine
+        RectangPoint startPoint = new RectangPoint()
+        {
+            X = startX,
+            Y = startY
+        };
+
+        double width = Math.Abs(startX - endX);
+        double height = Math.Abs(startY - endY);
+
+        CurrentImageRectangles.Add(new RectangleInfo
+        {
+            StartPoint = startPoint,
+            Width = width,
+            Height = height
+        });
     }
 }
 
 
 public class RectangleInfo
 {
-    public Point? StartPoint { get; set; }
+    public RectangPoint? StartPoint { get; set; }
 
     public double Width { get; set; }
-    public double XX { get; set; }
 
     public double Height { get; set; }
 }
 
-public class Point
+public class RectangPoint
 {
     public double X { get; set; }
     public double Y { get; set; }

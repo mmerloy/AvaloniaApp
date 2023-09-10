@@ -100,7 +100,7 @@
 
 			<ItemsControl.ItemsPanel>
 				<ItemsPanelTemplate>
-					<Canvas>
+					<Canvas x:Name="ImgCanvas" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased">
 						<Canvas.Background>
 							<ImageBrush Source="{Binding SourceImage}"/>
 						</Canvas.Background>
