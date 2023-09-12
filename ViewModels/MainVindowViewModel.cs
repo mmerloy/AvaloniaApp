@@ -2,9 +2,14 @@
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace AvaloniaFirstApp.ViewModels;
 
@@ -35,6 +40,8 @@ public class MainVindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public IStorageFile? ImageStorageFile { get; private set; }
+
     /// <summary>
     /// Метод очистки поля для изображения
     /// </summary>
@@ -47,7 +54,7 @@ public class MainVindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// Заполнение поля изображением
     /// </summary>
-    public async void SetImageAsync()
+    public async Task SetImageAsync()
     {
         ClearImage();
         var topLevel = TopLevel.GetTopLevel(App.MainWindow);
@@ -59,10 +66,10 @@ public class MainVindowViewModel : INotifyPropertyChanged
             AllowMultiple = false
         });
 
-        var firstFile = files.First();
+        ImageStorageFile = files.First();
 
-        SourceImage = new Bitmap(firstFile.Path.LocalPath);
-        CreateRectangles(firstFile.Name.ToString());
+        SourceImage = new Bitmap(ImageStorageFile.Path.LocalPath);
+        //await CreateRectangles();
     }
 
     public ObservableCollection<RectangleInfo> CurrentImageRectangles { get; set; }
@@ -72,37 +79,26 @@ public class MainVindowViewModel : INotifyPropertyChanged
     /// Для создания прямоугольников на изображении 
     /// (ошибки на плате)
     /// </summary>
-    private void CreateRectangles(string name)
+    public async Task CreateRectangles()
     {
-        var rect = new RectangleInfo
-        {
-            Height = 10,
-            Width = 23,
-            StartPoint = new RectangPoint()
-            {
-                X = 100,
-                Y = 50
-            }
-        };
-        CurrentImageRectangles.Add(rect);
+        if (ImageStorageFile is null)
+            return;
+
+        string rectsFilePath = ImageStorageFile.Path.LocalPath + ".rects";
+
+        if (!File.Exists(rectsFilePath))
+            return;
 
 
-        if (name == "image3.webp")
-        {
-            rect.Width = 5;
-            rect.Height = 12;
-            rect.StartPoint.X = 10;
-            rect.StartPoint.Y = 12;
-        }
-        else if (name == "image2.webp")
-        {
-            rect.Width = 20;
-            rect.Height = 5;
-            rect.StartPoint.X = 20;
-            rect.StartPoint.Y = 32;
-        }
+        using var fileReadStream = File.OpenRead(rectsFilePath);
+        
+        var rectsCollection = await JsonSerializer.DeserializeAsync<List<RectangleInfo>>(fileReadStream);
 
-        CurrentImageRectangles.Add(rect);
+        if (rectsCollection is null || !rectsCollection.Any())
+            return;
+
+        foreach (var rect in rectsCollection)
+            CurrentImageRectangles.Add(rect);
     }
 
     public void AddRectangleToImage(double startX, double startY, double endX, double endY)
@@ -122,6 +118,13 @@ public class MainVindowViewModel : INotifyPropertyChanged
             Width = width,
             Height = height
         });
+    }
+
+    public async Task SaveRectanglesToImage()
+    {
+        using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + ".rects");
+
+        await JsonSerializer.SerializeAsync(fileStream, CurrentImageRectangles);
     }
 }
 

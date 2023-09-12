@@ -9,6 +9,9 @@
 		x:DataType="vm:MainVindowViewModel"
 		WindowState="Maximized"
 		>
+	<Window.KeyBindings>
+		<KeyBinding Command="{Binding SaveRectanglesToImage}" Gesture="Ctrl+E"/>
+	</Window.KeyBindings>
 	
 	<!---->
 	<DockPanel>
@@ -89,7 +92,8 @@
 				<Button Content="Очистить"
 						Margin="20 10 40 10"
 						Command="{Binding ClearImage}"/>
-				<Button Content="Распознать"/>
+				<Button Content="Распознать"
+						Command="{Binding CreateRectangles}"/>
 			</StackPanel>
 		</StackPanel>
 
