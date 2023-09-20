@@ -6,7 +6,7 @@
 		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaFirstApp.MainWindow"
         Title="AvaloniaFirstApp" FontFamily="Times new roman"
-		x:DataType="vm:MainVindowViewModel"
+		x:DataType="vm:MainWindowViewModel"
 		WindowState="Maximized"
 		>
 	<Window.KeyBindings>
@@ -43,7 +43,8 @@
 					<!--GroupName задаем, чтобы можно выбрать только один тип-->
 					<RadioButton
 						GroupName="Group object type"
-						Content="Окружность"/>
+						Content="Окружность"
+						IsChecked="True"/>
 					<RadioButton
 						GroupName="Group object type"
 						Content="Линия"/>
@@ -63,13 +64,16 @@
 					<!--GroupName задаем, чтобы можно выбрать только один тип-->
 					<RadioButton
 						GroupName="Group method"
-						Content="Метод интерполяции"/>
+						Content="Метод интерполяции"
+						IsChecked="{Binding Path=IsInterpolationSelected}"/>
 					<RadioButton
 						GroupName="Group method"
-						Content="Метод весовых коэффициентов"/>
+						Content="Метод весовых коэффициентов"
+						IsChecked="{Binding Path=IsWeightCoefficientsMethodSelected}"/>
 					<RadioButton
 						GroupName="Group method"
-						Content="Редукция конъюнкций"/>
+						Content="Рекурентной коньюнкции"
+						IsChecked="{Binding IsRecursionMethodSelected}"/>
 				</StackPanel>
 			</HeaderedContentControl>
 
@@ -78,13 +82,7 @@
 									Background="White"
 									BorderThickness="1"
 										>
-				<DockPanel>
-					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
-							   VerticalAlignment="Center" />
-					<TextBox  VerticalAlignment="Center"
-							  Margin="20 0 0 0"
-							  Text="{Binding MyDoubleValue}"/>
-				</DockPanel>
+				<ContentControl Content="{Binding MethodConfigViewModel}"/>
 
 			</HeaderedContentControl>
 

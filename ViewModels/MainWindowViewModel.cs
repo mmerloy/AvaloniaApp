@@ -1,11 +1,10 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using ReactiveUI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -17,12 +16,62 @@ namespace AvaloniaFirstApp.ViewModels;
 /// <summary>
 /// Это наша вью-модель!
 /// </summary>
-public class MainVindowViewModel : INotifyPropertyChanged
+public class MainWindowViewModel : ReactiveUI.ReactiveObject
 {
-    public double MyDoubleValue { get; set; }
+    private bool _isRecursionMethodSelected;
 
-    //точка доступа к таблицам биндинга
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public bool IsRecursionMethodSelected
+    {
+        get => _isRecursionMethodSelected;
+        set
+        {
+            if (value)
+                MethodConfigViewModel = new RecursialMethodConfigurationViewModel();
+            else
+                MethodConfigViewModel = null;
+            this.RaiseAndSetIfChanged(ref _isRecursionMethodSelected, value);
+        }
+    }
+
+
+    private bool _isWeightCoefficientsMethodSelected;
+
+    public bool IsWeightCoefficientsMethodSelected
+    {
+        get => _isWeightCoefficientsMethodSelected;
+        set
+        {
+            if (value)
+                MethodConfigViewModel = new WeightCoefficientsMethodConfigurationViewModel();
+            else
+                MethodConfigViewModel = null;
+            this.RaiseAndSetIfChanged(ref _isWeightCoefficientsMethodSelected, value);
+        }
+    }
+
+
+    private bool _isInterpolationSelected;
+
+    public bool IsInterpolationSelected
+    {
+        get => _isInterpolationSelected;
+        set
+        {
+            if (value)
+                MethodConfigViewModel = new InterpolationMethodConfigurationViewModel();
+            else
+                MethodConfigViewModel = null;
+            this.RaiseAndSetIfChanged(ref _isInterpolationSelected, value);
+        }
+    }
+
+    private MethodConfigurationViewModel? _methodConfigViewModel;
+
+    public MethodConfigurationViewModel? MethodConfigViewModel
+    {
+        get => _methodConfigViewModel;
+        set => this.RaiseAndSetIfChanged(ref _methodConfigViewModel, value);
+    }
 
     private Bitmap? _imageSource = null;//? нужен чтобы явно указать что в перемнную можно присвоить null
 
@@ -33,11 +82,7 @@ public class MainVindowViewModel : INotifyPropertyChanged
     public Bitmap? SourceImage
     {
         get => _imageSource;
-        set
-        {
-            _imageSource = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SourceImage)));
-        }
+        set => this.RaiseAndSetIfChanged(ref _imageSource, value);
     }
 
     public IStorageFile? ImageStorageFile { get; private set; }
@@ -47,6 +92,7 @@ public class MainVindowViewModel : INotifyPropertyChanged
     /// </summary>
     public void ClearImage()
     {
+        ImageStorageFile = null;
         SourceImage = null;
         CurrentImageRectangles.Clear();
     }
@@ -84,19 +130,24 @@ public class MainVindowViewModel : INotifyPropertyChanged
         if (ImageStorageFile is null)
             return;
 
-        string rectsFilePath = ImageStorageFile.Path.LocalPath + ".rects";
+        double? notFullCoverage = null;
+        if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
+            notFullCoverage = model.NotAllCoverage;
+
+        string rectsFilePath = ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects";
 
         if (!File.Exists(rectsFilePath))
             return;
 
-
         using var fileReadStream = File.OpenRead(rectsFilePath);
-        
+
         var rectsCollection = await JsonSerializer.DeserializeAsync<List<RectangleInfo>>(fileReadStream);
 
         if (rectsCollection is null || !rectsCollection.Any())
             return;
 
+        rectsCollection!.ForEach(r => ModifyRectByMethodConfig(r));
+        CurrentImageRectangles.Clear();
         foreach (var rect in rectsCollection)
             CurrentImageRectangles.Add(rect);
     }
@@ -120,11 +171,35 @@ public class MainVindowViewModel : INotifyPropertyChanged
         });
     }
 
+    //TODO: refactor
+    private void ModifyRectByMethodConfig(RectangleInfo rectangleInfo)
+    {
+        if (MethodConfigViewModel is not null && rectangleInfo is not null && rectangleInfo.StartPoint is not null)
+        {
+            Random rg = new();
+            double k = rg.NextDouble();
+            k *= rg.Next() % 2 == 0 ? 1 : -1;
+
+            double changingWidth = MethodConfigViewModel.Inaccuracy / rectangleInfo.Width * k;
+            double changingHeight = MethodConfigViewModel.Inaccuracy / rectangleInfo.Height * k;
+            rectangleInfo.Width = rectangleInfo.Width - changingWidth;
+            rectangleInfo.Height = rectangleInfo.Height - changingHeight;
+
+            rectangleInfo.StartPoint.X -= changingWidth / 2d;
+            rectangleInfo.StartPoint.Y += changingHeight / 2d;
+        }
+    }
+
     public async Task SaveRectanglesToImage()
     {
-        using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + ".rects");
+        double? notFullCoverage = null;
+        if(MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
+            notFullCoverage = model.NotAllCoverage;
+
+        using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects");
 
         await JsonSerializer.SerializeAsync(fileStream, CurrentImageRectangles);
+        CurrentImageRectangles.Clear();
     }
 }
 

@@ -21,7 +21,7 @@ public partial class App : Application
         {
             MainWindow = new MainWindow()
             {
-                DataContext = new MainVindowViewModel()
+                DataContext = new MainWindowViewModel()
                 //{
                 //    MyDoubleValue = 119293.111,
                 //    SomeText = "Hello!",

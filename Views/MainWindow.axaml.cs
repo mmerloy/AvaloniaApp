@@ -9,7 +9,7 @@ namespace AvaloniaFirstApp;
 
 public partial class MainWindow : Window
 {
-    public MainVindowViewModel? DataSourceInstance => DataContext as MainVindowViewModel;
+    public MainWindowViewModel? DataSourceInstance => DataContext as MainWindowViewModel;
 
     public MainWindow()
     {

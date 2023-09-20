@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		     xmlns:vm="clr-namespace:AvaloniaFirstApp.ViewModels"
              x:Class="AvaloniaFirstApp.App"
              RequestedThemeVariant="Light">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -34,4 +35,46 @@
 			</Setter>
 		</Style>
 	</Application.Styles>
+	<Application.DataTemplates>
+		<DataTemplate DataType="{x:Type vm:RecursialMethodConfigurationViewModel}">
+			<StackPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+								Margin="20 0 0 0"
+								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Неполное поерытие"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+							  Margin="20 0 0 0"
+							  Text="{Binding NotAllCoverage}"/>
+				</DockPanel>
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:InterpolationMethodConfigurationViewModel}">
+			<StackPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+								Margin="20 0 0 0"
+								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:WeightCoefficientsMethodConfigurationViewModel}">
+			<StackPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+								Margin="20 0 0 0"
+								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+			</StackPanel>
+		</DataTemplate>
+	</Application.DataTemplates>
 </Application>
