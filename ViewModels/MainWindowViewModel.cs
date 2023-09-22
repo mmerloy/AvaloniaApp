@@ -5,6 +5,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -130,11 +131,13 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         if (ImageStorageFile is null)
             return;
 
-        double? notFullCoverage = null;
+        string? notFullCoverage = null;
         if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
-            notFullCoverage = model.NotAllCoverage;
+            notFullCoverage = model.NotAllCoverage.ToString().Replace(".", ",");
 
         string rectsFilePath = ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects";
+
+        CurrentImageRectangles.Clear();
 
         if (!File.Exists(rectsFilePath))
             return;
@@ -147,7 +150,6 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
             return;
 
         rectsCollection!.ForEach(r => ModifyRectByMethodConfig(r));
-        CurrentImageRectangles.Clear();
         foreach (var rect in rectsCollection)
             CurrentImageRectangles.Add(rect);
     }
@@ -192,9 +194,9 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     public async Task SaveRectanglesToImage()
     {
-        double? notFullCoverage = null;
-        if(MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
-            notFullCoverage = model.NotAllCoverage;
+        string? notFullCoverage = null;
+        if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
+            notFullCoverage = model.NotAllCoverage.ToString().Replace(".", ",");
 
         using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects");
 

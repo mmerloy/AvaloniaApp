@@ -74,6 +74,21 @@
 								Margin="20 0 0 0"
 								Text="{Binding Inaccuracy}"/>
 				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Яркость"
+							   VerticalAlignment="Center" />
+					<CheckBox HorizontalAlignment="Right"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Контрастность"
+							   VerticalAlignment="Center" />
+					<CheckBox HorizontalAlignment="Right"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Цвет"
+							   VerticalAlignment="Center" />
+					<CheckBox HorizontalAlignment="Right"/>
+				</DockPanel>
 			</StackPanel>
 		</DataTemplate>
 	</Application.DataTemplates>
