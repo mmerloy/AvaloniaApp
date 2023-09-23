@@ -12,7 +12,7 @@
 	<Window.KeyBindings>
 		<KeyBinding Command="{Binding SaveRectanglesToImage}" Gesture="Ctrl+E"/>
 	</Window.KeyBindings>
-	
+
 	<!---->
 	<DockPanel>
 
@@ -91,20 +91,24 @@
 						Margin="20 10 40 10"
 						Command="{Binding ClearImage}"/>
 				<Button Content="Распознать"
-						Command="{Binding CreateRectangles}"/>
+						Command="{Binding CreateRectangles}"
+						Click="SetBounds"/>
 			</StackPanel>
 		</StackPanel>
 
 		<!--Для окошка с картинкой-->
-		<ItemsControl ItemsSource="{Binding CurrentImageRectangles}"
+		<ItemsControl x:Name="ImgCanvas" ItemsSource="{Binding CurrentImageRectangles}"
 					BorderThickness="2" BorderBrush="Gray"
 					Margin="14" x:CompileBindings="False">
 
 			<ItemsControl.ItemsPanel>
 				<ItemsPanelTemplate>
-					<Canvas x:Name="ImgCanvas" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased">
+					<Canvas 
+							PointerPressed="OnPointerPressed" 
+							PointerReleased="OnPointerReleased"
+						>
 						<Canvas.Background>
-							<ImageBrush Source="{Binding SourceImage}"/>
+							<ImageBrush Source="{Binding SourceImage}" Stretch="Uniform"/>
 						</Canvas.Background>
 					</Canvas>
 				</ItemsPanelTemplate>
@@ -116,7 +120,7 @@
 					<Setter Property="Canvas.Top" Value="{Binding StartPoint.Y}"/>
 				</Style>
 			</ItemsControl.Styles>
-			
+
 			<ItemsControl.ItemTemplate>
 				<DataTemplate DataType="{x:Type vm:RectangleInfo}">
 					<Rectangle Width="{Binding Width}"
@@ -124,9 +128,9 @@
 							   Stroke="Red" StrokeThickness="2"/>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
-			
 
-			
+
+
 		</ItemsControl>
 	</DockPanel>
 </Window>

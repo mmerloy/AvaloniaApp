@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using AvaloniaFirstApp.ViewModels;
 using System;
 
@@ -48,9 +49,17 @@ public partial class MainWindow : Window
 
         (startPoint, endPoint) = ChouseStartAndEndPoint(ref startPoint, ref endPoint);
 
+        SetBounds();
+
         DataSourceInstance.AddRectangleToImage(startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
 
         _startPoint = null;
+    }
+
+    private void SetBounds(object sender = null, RoutedEventArgs args = null)
+    {
+        DataSourceInstance!.PositioningConfig.XMultiplexer = ImgCanvas.Bounds.Width;
+        DataSourceInstance!.PositioningConfig.YMultiplexer = ImgCanvas.Bounds.Height;
     }
 
     private static (Point Start, Point End) ChouseStartAndEndPoint(ref Point lhs, ref Point rhs)

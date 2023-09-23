@@ -5,7 +5,6 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -19,6 +18,8 @@ namespace AvaloniaFirstApp.ViewModels;
 /// </summary>
 public class MainWindowViewModel : ReactiveUI.ReactiveObject
 {
+    public PositioningConfigViewModel PositioningConfig { get; } = new();
+
     private bool _isRecursionMethodSelected;
 
     public bool IsRecursionMethodSelected
@@ -149,7 +150,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         if (rectsCollection is null || !rectsCollection.Any())
             return;
 
-        rectsCollection!.ForEach(r => ModifyRectByMethodConfig(r));
+        rectsCollection!.ForEach(r => ModifyRectByConfigs(r));
+        rectsCollection!.ForEach(r => ModifyRectToLoad(r));
         foreach (var rect in rectsCollection)
             CurrentImageRectangles.Add(rect);
     }
@@ -165,16 +167,18 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         double width = Math.Abs(startX - endX);
         double height = Math.Abs(startY - endY);
 
-        CurrentImageRectangles.Add(new RectangleInfo
+        var rectangleInfo = new RectangleInfo
         {
             StartPoint = startPoint,
             Width = width,
             Height = height
-        });
+        };
+
+        CurrentImageRectangles.Add(rectangleInfo);
     }
 
     //TODO: refactor
-    private void ModifyRectByMethodConfig(RectangleInfo rectangleInfo)
+    private void ModifyRectByConfigs(RectangleInfo rectangleInfo)
     {
         if (MethodConfigViewModel is not null && rectangleInfo is not null && rectangleInfo.StartPoint is not null)
         {
@@ -192,6 +196,41 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         }
     }
 
+    private void ModifyRectToLoad(RectangleInfo rectangleInfo)
+    {
+        if (rectangleInfo.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
+        {
+            var imgSize = SourceImage.Size;
+
+            double kX = PositioningConfig.XMultiplexer / imgSize.Width;
+            double kY = PositioningConfig.YMultiplexer / imgSize.Height;
+
+            rectangleInfo.StartPoint.X *= kX;
+            rectangleInfo.StartPoint.Y *= kY;
+
+            rectangleInfo.Width *= kX;
+            rectangleInfo.Height *= kY;
+        }
+    }
+
+
+    private void ModifyRectToSave(RectangleInfo rectangleInfo)
+    {
+        if (rectangleInfo.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
+        {
+            var imgSize = SourceImage.Size;
+
+            double kX = imgSize.Width / PositioningConfig.XMultiplexer;
+            double kY = imgSize.Height / PositioningConfig.YMultiplexer;
+
+            rectangleInfo.StartPoint.X *= kX;
+            rectangleInfo.StartPoint.Y *= kY;
+
+            rectangleInfo.Width *= kX;
+            rectangleInfo.Height *= kY;
+        }
+    }
+
     public async Task SaveRectanglesToImage()
     {
         string? notFullCoverage = null;
@@ -200,8 +239,11 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects");
 
-        await JsonSerializer.SerializeAsync(fileStream, CurrentImageRectangles);
+        List<RectangleInfo> rectangleInfos = CurrentImageRectangles.ToList();
         CurrentImageRectangles.Clear();
+        rectangleInfos.ForEach(r => ModifyRectToSave(r));
+
+        await JsonSerializer.SerializeAsync(fileStream, rectangleInfos);
     }
 }
 
