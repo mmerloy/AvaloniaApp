@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:AvaloniaFirstApp.ViewModels"
+        xmlns:m="clr-namespace:AvaloniaFirstApp.Models"
 		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaFirstApp.MainWindow"
         Title="AvaloniaFirstApp" FontFamily="Times new roman"
@@ -10,7 +11,7 @@
 		WindowState="Maximized"
 		>
 	<Window.KeyBindings>
-		<KeyBinding Command="{Binding SaveRectanglesToImage}" Gesture="Ctrl+E"/>
+		<KeyBinding Command="{Binding SaveRectanglesToFile}" Gesture="Ctrl+E"/>
 	</Window.KeyBindings>
 
 	<!---->
@@ -25,9 +26,10 @@
 		<TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Left"
 				   Text="Status"/>
 
-		<!--средняя область -->
-		<StackPanel DockPanel.Dock="Right" Margin="10">
-			<Button DockPanel.Dock="Top" HorizontalAlignment="Center"
+		<!--правая область -->
+		<ScrollViewer DockPanel.Dock="Right">
+		<StackPanel Margin="10">
+			<Button HorizontalAlignment="Center"
 					Content="Загрузить изображение"
 					Margin="0 10"
 					Command="{Binding SetImageAsync}"
@@ -95,6 +97,7 @@
 						Click="SetBounds"/>
 			</StackPanel>
 		</StackPanel>
+		</ScrollViewer>
 
 		<!--Для окошка с картинкой-->
 		<ItemsControl x:Name="ImgCanvas" ItemsSource="{Binding CurrentImageRectangles}"
@@ -122,7 +125,7 @@
 			</ItemsControl.Styles>
 
 			<ItemsControl.ItemTemplate>
-				<DataTemplate DataType="{x:Type vm:RectangleInfo}">
+				<DataTemplate DataType="{x:Type m:RectangleInfo}">
 					<Rectangle Width="{Binding Width}"
 							   Height="{Binding Height}"
 							   Stroke="Red" StrokeThickness="2"/>

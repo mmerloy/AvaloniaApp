@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using AvaloniaFirstApp.Models;
+using DynamicData;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -18,7 +20,14 @@ namespace AvaloniaFirstApp.ViewModels;
 /// </summary>
 public class MainWindowViewModel : ReactiveUI.ReactiveObject
 {
-    public PositioningConfigViewModel PositioningConfig { get; } = new();
+    public MainWindowViewModel()
+    {
+        PositioningConfig = new();
+        PositioningConfig.SizesChanged += SetNewSizesToRectangles;
+    }
+
+    /// <summary>Конфиг, для передачи данных о размере поля, на котором прорисовываются прямоугольники.</summary>
+    public PositioningConfigViewModel PositioningConfig { get; }
 
     private bool _isRecursionMethodSelected;
 
@@ -67,19 +76,20 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         }
     }
 
+
     private MethodConfigurationViewModel? _methodConfigViewModel;
 
+    /// <summary>View-модель о выбранном методе обработки изображения для отрисовки в UI.</summary>
     public MethodConfigurationViewModel? MethodConfigViewModel
     {
         get => _methodConfigViewModel;
         set => this.RaiseAndSetIfChanged(ref _methodConfigViewModel, value);
     }
 
-    private Bitmap? _imageSource = null;//? нужен чтобы явно указать что в перемнную можно присвоить null
+    private Bitmap? _imageSource = null;//? нужен чтобы явно указать что в переменную можно присвоить null
 
     /// <summary>
-    /// Обертка над приватной _imageSource для доступа
-    /// Источник данных для добавления изображений плат
+    /// Источник данных для добавления изображений плат в UI.
     /// </summary>
     public Bitmap? SourceImage
     {
@@ -87,7 +97,11 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _imageSource, value);
     }
 
+    /// <summary>Данные о файле, в котором храниться демонстрируемое в UI изображение <see cref="SourceImage"/>.</summary>
     public IStorageFile? ImageStorageFile { get; private set; }
+
+    /// <summary>Данные о сохраненных прямоугольниках в координатах действительного источника изображения, не UI.</summary>
+    public List<RectangleInfo>? RectanglesInfoFromImageSource { get; private set; }
 
     /// <summary>
     /// Метод очистки поля для изображения
@@ -117,9 +131,9 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         ImageStorageFile = files.First();
 
         SourceImage = new Bitmap(ImageStorageFile.Path.LocalPath);
-        //await CreateRectangles();
     }
 
+    /// <summary>Прямоугольники, демонстрируемые на изображении в UI с координатами UI.</summary>
     public ObservableCollection<RectangleInfo> CurrentImageRectangles { get; set; }
         = new ObservableCollection<RectangleInfo>();
 
@@ -132,33 +146,30 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         if (ImageStorageFile is null)
             return;
 
+        CurrentImageRectangles.Clear();
+
         string? notFullCoverage = null;
         if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
             notFullCoverage = model.NotAllCoverage.ToString().Replace(".", ",");
 
         string rectsFilePath = ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects";
 
-        CurrentImageRectangles.Clear();
-
         if (!File.Exists(rectsFilePath))
             return;
 
         using var fileReadStream = File.OpenRead(rectsFilePath);
 
-        var rectsCollection = await JsonSerializer.DeserializeAsync<List<RectangleInfo>>(fileReadStream);
+        RectanglesInfoFromImageSource = await JsonSerializer.DeserializeAsync<List<RectangleInfo>>(fileReadStream);
 
-        if (rectsCollection is null || !rectsCollection.Any())
+        if (RectanglesInfoFromImageSource is null || !RectanglesInfoFromImageSource.Any())
             return;
 
-        rectsCollection!.ForEach(r => ModifyRectByConfigs(r));
-        rectsCollection!.ForEach(r => ModifyRectToLoad(r));
-        foreach (var rect in rectsCollection)
-            CurrentImageRectangles.Add(rect);
+        CurrentImageRectangles.AddRange(RectanglesInfoFromImageSource.Select(sr => ModifyRectByConfigs(sr)));
     }
 
     public void AddRectangleToImage(double startX, double startY, double endX, double endY)
     {
-        RectangPoint startPoint = new RectangPoint()
+        RectanglePoint startPoint = new RectanglePoint()
         {
             X = startX,
             Y = startY
@@ -178,60 +189,85 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     }
 
     //TODO: refactor
-    private void ModifyRectByConfigs(RectangleInfo rectangleInfo)
+    private RectangleInfo ModifyRectByConfigs(RectangleInfo rectangleInfo)
     {
-        if (MethodConfigViewModel is not null && rectangleInfo is not null && rectangleInfo.StartPoint is not null)
-        {
-            Random rg = new();
-            double k = rg.NextDouble();
-            k *= rg.Next() % 2 == 0 ? 1 : -1;
+        RectangleInfo rectClone = rectangleInfo.Clone();
 
-            double changingWidth = MethodConfigViewModel.Inaccuracy / rectangleInfo.Width * k;
-            double changingHeight = MethodConfigViewModel.Inaccuracy / rectangleInfo.Height * k;
-            rectangleInfo.Width = rectangleInfo.Width - changingWidth;
-            rectangleInfo.Height = rectangleInfo.Height - changingHeight;
-
-            rectangleInfo.StartPoint.X -= changingWidth / 2d;
-            rectangleInfo.StartPoint.Y += changingHeight / 2d;
-        }
-    }
-
-    private void ModifyRectToLoad(RectangleInfo rectangleInfo)
-    {
-        if (rectangleInfo.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
+        if (rectClone.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
         {
             var imgSize = SourceImage.Size;
 
             double kX = PositioningConfig.XMultiplexer / imgSize.Width;
             double kY = PositioningConfig.YMultiplexer / imgSize.Height;
 
-            rectangleInfo.StartPoint.X *= kX;
-            rectangleInfo.StartPoint.Y *= kY;
+            rectClone.StartPoint.X *= kX;
+            rectClone.StartPoint.Y *= kY;
 
-            rectangleInfo.Width *= kX;
-            rectangleInfo.Height *= kY;
+            rectClone.Width *= kX;
+            rectClone.Height *= kY;
         }
+
+        if (MethodConfigViewModel is not null && rectClone is not null && rectClone.StartPoint is not null)
+        {
+            Random rg = new();
+            double k = rg.NextDouble();
+            k *= rg.Next() % 2 == 0 ? 1 : -1;
+
+            double changingWidth = MethodConfigViewModel.Inaccuracy / rectClone.Width * k;
+            double changingHeight = MethodConfigViewModel.Inaccuracy / rectClone.Height * k;
+            rectClone.Width = rectClone.Width - changingWidth;
+            rectClone.Height = rectClone.Height - changingHeight;
+
+            rectClone.StartPoint.X -= changingWidth / 2d;
+            rectClone.StartPoint.Y += changingHeight / 2d;
+        }
+
+        return rectClone;
     }
 
 
-    private void ModifyRectToSave(RectangleInfo rectangleInfo)
+    private RectangleInfo ModifyRectToSave(RectangleInfo rectangleInfo)
     {
-        if (rectangleInfo.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
+        RectangleInfo rectClone = rectangleInfo.Clone();
+
+        if (rectClone.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
         {
             var imgSize = SourceImage.Size;
 
             double kX = imgSize.Width / PositioningConfig.XMultiplexer;
             double kY = imgSize.Height / PositioningConfig.YMultiplexer;
 
-            rectangleInfo.StartPoint.X *= kX;
-            rectangleInfo.StartPoint.Y *= kY;
+            rectClone.StartPoint.X *= kX;
+            rectClone.StartPoint.Y *= kY;
 
-            rectangleInfo.Width *= kX;
-            rectangleInfo.Height *= kY;
+            rectClone.Width *= kX;
+            rectClone.Height *= kY;
+        }
+
+        return rectClone;
+    }
+
+    private void SetNewSizesToRectangles(double fieldWidth, double fieldHeight)
+    {
+        if (RectanglesInfoFromImageSource is not null)
+        {
+            CurrentImageRectangles.Clear();
+            CurrentImageRectangles.AddRange(RectanglesInfoFromImageSource.Select(sr => ModifyRectByConfigs(sr)));
+        }
+        else
+        {
+            var imgRelatedRects = CurrentImageRectangles
+                .Select(uir => ModifyRectToSave(uir))
+                .ToList();
+            CurrentImageRectangles.Clear();
+            var newUIRelatedRects = imgRelatedRects
+                .Select(ModifyRectByConfigs)
+                .ToList();
+            CurrentImageRectangles.AddRange(newUIRelatedRects);
         }
     }
 
-    public async Task SaveRectanglesToImage()
+    public async Task SaveRectanglesToFile()
     {
         string? notFullCoverage = null;
         if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
@@ -239,26 +275,13 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects");
 
-        List<RectangleInfo> rectangleInfos = CurrentImageRectangles.ToList();
-        CurrentImageRectangles.Clear();
-        rectangleInfos.ForEach(r => ModifyRectToSave(r));
+        var rectangleInfosTofile = CurrentImageRectangles
+            .Select(uir => ModifyRectToSave(uir))
+            .ToList();
 
-        await JsonSerializer.SerializeAsync(fileStream, rectangleInfos);
+        CurrentImageRectangles.Clear();
+
+        await JsonSerializer.SerializeAsync(fileStream, rectangleInfosTofile);
     }
 }
 
-
-public class RectangleInfo
-{
-    public RectangPoint? StartPoint { get; set; }
-
-    public double Width { get; set; }
-
-    public double Height { get; set; }
-}
-
-public class RectangPoint
-{
-    public double X { get; set; }
-    public double Y { get; set; }
-}

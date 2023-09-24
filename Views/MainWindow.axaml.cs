@@ -15,6 +15,12 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ImgCanvas.SizeChanged += OnImgCanvasSizeChanged;
+    }
+
+    private void OnImgCanvasSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        SetBounds();
     }
 
     private Point? _startPoint = null;
@@ -26,6 +32,7 @@ public partial class MainWindow : Window
             return;
 
         _startPoint = e.GetCurrentPoint(imgCanvas).Position;
+
     }
 
     private void OnPointerReleased(object sender, PointerReleasedEventArgs e)
