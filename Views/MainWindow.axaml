@@ -14,7 +14,6 @@
 		<KeyBinding Command="{Binding SaveRectanglesToFile}" Gesture="Ctrl+E"/>
 	</Window.KeyBindings>
 
-	<!---->
 	<DockPanel>
 
 		<!--верхняя область -->
@@ -28,112 +27,123 @@
 
 		<!--правая область -->
 		<ScrollViewer DockPanel.Dock="Right">
-		<StackPanel Margin="10">
-			<Button HorizontalAlignment="Center"
-					Content="Загрузить изображение"
-					Margin="0 10"
-					Command="{Binding SetImageAsync}"
+			<StackPanel Margin="10">
+				<Button HorizontalAlignment="Center"
+						Content="Загрузить изображение"
+						Margin="0 10"
+						Command="{Binding SetImageAsync}"
 				/>
 
 
-			<HeaderedContentControl Header="Укажите тип объекта"
+				<HeaderedContentControl Header="Укажите тип объекта"
+										BorderBrush="Black"
+										Background="White"
+										BorderThickness="1"
+										>
+					<StackPanel>
+						<!--GroupName задаем, чтобы можно выбрать только один тип-->
+						<RadioButton
+							GroupName="Group object type"
+							Content="Окружность"
+							IsChecked="True"/>
+						<RadioButton
+							GroupName="Group object type"
+							Content="Линия"/>
+						<RadioButton
+							GroupName="Group object type"
+							Content="Неровность"/>
+					</StackPanel>
+
+				</HeaderedContentControl>
+
+				<HeaderedContentControl Header="Укажите метод"
 									BorderBrush="Black"
 									Background="White"
 									BorderThickness="1"
 										>
-				<StackPanel>
-					<!--GroupName задаем, чтобы можно выбрать только один тип-->
-					<RadioButton
-						GroupName="Group object type"
-						Content="Окружность"
-						IsChecked="True"/>
-					<RadioButton
-						GroupName="Group object type"
-						Content="Линия"/>
-					<RadioButton
-						GroupName="Group object type"
-						Content="Неровность"/>
-				</StackPanel>
+					<StackPanel>
+						<!--GroupName задаем, чтобы можно выбрать только один тип-->
+						<RadioButton
+							GroupName="Group method"
+							Content="Метод интерполяции"
+							IsChecked="{Binding Path=IsInterpolationSelected}"/>
+						<RadioButton
+							GroupName="Group method"
+							Content="Метод весовых коэффициентов"
+							IsChecked="{Binding Path=IsWeightCoefficientsMethodSelected}"/>
+						<RadioButton
+							GroupName="Group method"
+							Content="Рекурентной коньюнкции"
+							IsChecked="{Binding IsRecursionMethodSelected}"/>
+					</StackPanel>
+				</HeaderedContentControl>
 
-			</HeaderedContentControl>
-
-			<HeaderedContentControl Header="Укажите метод"
-								BorderBrush="Black"
-								Background="White"
-								BorderThickness="1"
+				<HeaderedContentControl Header="Параметры метода"
+										BorderBrush="Black"
+										Background="White"
+										BorderThickness="1"
 										>
-				<StackPanel>
-					<!--GroupName задаем, чтобы можно выбрать только один тип-->
-					<RadioButton
-						GroupName="Group method"
-						Content="Метод интерполяции"
-						IsChecked="{Binding Path=IsInterpolationSelected}"/>
-					<RadioButton
-						GroupName="Group method"
-						Content="Метод весовых коэффициентов"
-						IsChecked="{Binding Path=IsWeightCoefficientsMethodSelected}"/>
-					<RadioButton
-						GroupName="Group method"
-						Content="Рекурентной коньюнкции"
-						IsChecked="{Binding IsRecursionMethodSelected}"/>
+					<ContentControl Content="{Binding MethodConfigViewModel}"/>
+
+				</HeaderedContentControl>
+
+				<StackPanel Orientation="Horizontal">
+					<Button Content="Очистить"
+							Margin="20 10 40 10"
+							Command="{Binding ClearImage}"/>
+					<Button Content="Распознать"
+							Command="{Binding CreateRectangles}"
+							Click="SetBounds"/>
 				</StackPanel>
-			</HeaderedContentControl>
-
-			<HeaderedContentControl Header="Параметры метода"
-									BorderBrush="Black"
-									Background="White"
-									BorderThickness="1"
-										>
-				<ContentControl Content="{Binding MethodConfigViewModel}"/>
-
-			</HeaderedContentControl>
-
-			<StackPanel Orientation="Horizontal">
-				<Button Content="Очистить"
-						Margin="20 10 40 10"
-						Command="{Binding ClearImage}"/>
-				<Button Content="Распознать"
-						Command="{Binding CreateRectangles}"
-						Click="SetBounds"/>
 			</StackPanel>
-		</StackPanel>
 		</ScrollViewer>
 
 		<!--Для окошка с картинкой-->
-		<ItemsControl x:Name="ImgCanvas" ItemsSource="{Binding CurrentImageRectangles}"
-					BorderThickness="2" BorderBrush="Gray"
-					Margin="14" x:CompileBindings="False">
+		<Border BorderThickness="2" BorderBrush="Gray" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="14" >
+			<Grid>
+				<ItemsControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+						x:Name="ImgCanvas"
+						x:CompileBindings="False"
+						ItemsSource="{Binding CurrentImageRectangles}"
+						SizeChanged="OnImgCanvasSizeChanged" ZIndex="1"
+					>
 
-			<ItemsControl.ItemsPanel>
-				<ItemsPanelTemplate>
-					<Canvas 
-							PointerPressed="OnPointerPressed" 
-							PointerReleased="OnPointerReleased"
-						>
-						<Canvas.Background>
-							<ImageBrush Source="{Binding SourceImage}" Stretch="Uniform"/>
-						</Canvas.Background>
-					</Canvas>
-				</ItemsPanelTemplate>
-			</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<Canvas
+								PointerPressed="OnPointerPressed"
+								PointerReleased="OnPointerReleased"
+								Background="Transparent"
+								>
+								<!--<Canvas.Background>
+								<ImageBrush Source="{Binding SourceImage}" Stretch="Uniform"/>
+							</Canvas.Background>-->
+							</Canvas>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
 
-			<ItemsControl.Styles>
-				<Style Selector="ItemsControl > ContentPresenter">
-					<Setter Property="Canvas.Left" Value="{Binding StartPoint.X}"/>
-					<Setter Property="Canvas.Top" Value="{Binding StartPoint.Y}"/>
-				</Style>
-			</ItemsControl.Styles>
+					<ItemsControl.Styles>
+						<Style Selector="ItemsControl > ContentPresenter">
+							<Setter Property="Canvas.Left" Value="{Binding StartPoint.X}"/>
+							<Setter Property="Canvas.Top" Value="{Binding StartPoint.Y}"/>
+						</Style>
+					</ItemsControl.Styles>
 
-			<ItemsControl.ItemTemplate>
-				<DataTemplate DataType="{x:Type m:RectangleInfo}">
-					<Rectangle Width="{Binding Width}"
-							   Height="{Binding Height}"
-							   Stroke="Red" StrokeThickness="2"/>
-				</DataTemplate>
-			</ItemsControl.ItemTemplate>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type m:RectangleInfo}">
+							<Rectangle Width="{Binding Width}"
+									   Height="{Binding Height}"
+									   Stroke="Red" StrokeThickness="2"/>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
 
 
 
-		</ItemsControl>
+				</ItemsControl>
+				<Image Source="{Binding SourceImage}"/>
+			</Grid>
+		</Border>
+
+
 	</DockPanel>
 </Window>

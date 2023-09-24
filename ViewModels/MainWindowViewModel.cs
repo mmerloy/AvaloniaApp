@@ -110,6 +110,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     {
         ImageStorageFile = null;
         SourceImage = null;
+        RectanglesInfoFromImageSource = null;
         CurrentImageRectangles.Clear();
     }
 
@@ -200,6 +201,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
             double kX = PositioningConfig.XMultiplexer / imgSize.Width;
             double kY = PositioningConfig.YMultiplexer / imgSize.Height;
 
+            //double k = Math.Min(kX, kY);
+
             rectClone.StartPoint.X *= kX;
             rectClone.StartPoint.Y *= kY;
 
@@ -207,7 +210,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
             rectClone.Height *= kY;
         }
 
-        if (MethodConfigViewModel is not null && rectClone is not null && rectClone.StartPoint is not null)
+        if (MethodConfigViewModel is not null && rectClone.StartPoint is not null)
         {
             Random rg = new();
             double k = rg.NextDouble();
@@ -226,28 +229,30 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     }
 
 
-    private RectangleInfo ModifyRectToSave(RectangleInfo rectangleInfo)
+    private RectangleInfo ModifyRectToSave(RectangleInfo rectangleInfo, double fieldWidth, double fieldHeight)
     {
         RectangleInfo rectClone = rectangleInfo.Clone();
 
-        if (rectClone.StartPoint is not null && SourceImage is not null && PositioningConfig is not null)
+        if (rectClone.StartPoint is not null && SourceImage is not null)
         {
             var imgSize = SourceImage.Size;
 
-            double kX = imgSize.Width / PositioningConfig.XMultiplexer;
-            double kY = imgSize.Height / PositioningConfig.YMultiplexer;
+            double kX = fieldWidth / imgSize.Width;
+            double kY = fieldHeight / imgSize.Height;
 
-            rectClone.StartPoint.X *= kX;
-            rectClone.StartPoint.Y *= kY;
+            //double k = Math.Min(kX, kY);
 
-            rectClone.Width *= kX;
-            rectClone.Height *= kY;
+            rectClone.StartPoint.X /= kX;
+            rectClone.StartPoint.Y /= kY;
+
+            rectClone.Width /= kX;
+            rectClone.Height /= kY;
         }
 
         return rectClone;
     }
 
-    private void SetNewSizesToRectangles(double fieldWidth, double fieldHeight)
+    private void SetNewSizesToRectangles(double oldFieldWidth, double oldFieldHeight)
     {
         if (RectanglesInfoFromImageSource is not null)
         {
@@ -257,7 +262,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         else
         {
             var imgRelatedRects = CurrentImageRectangles
-                .Select(uir => ModifyRectToSave(uir))
+                .Select(uir => ModifyRectToSave(uir, oldFieldWidth, oldFieldHeight))
                 .ToList();
             CurrentImageRectangles.Clear();
             var newUIRelatedRects = imgRelatedRects
@@ -269,14 +274,20 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     public async Task SaveRectanglesToFile()
     {
+        if (ImageStorageFile is null)
+            return;
+
         string? notFullCoverage = null;
         if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
             notFullCoverage = model.NotAllCoverage.ToString().Replace(".", ",");
 
-        using var fileStream = File.OpenWrite(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects");
+        using var fileStream = File.Open(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects", FileMode.Create);
+
+        double fieldWidth = PositioningConfig.XMultiplexer;
+        double fieldHeight = PositioningConfig.YMultiplexer;
 
         var rectangleInfosTofile = CurrentImageRectangles
-            .Select(uir => ModifyRectToSave(uir))
+            .Select(uir => ModifyRectToSave(uir, fieldWidth, fieldHeight))
             .ToList();
 
         CurrentImageRectangles.Clear();

@@ -15,7 +15,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        ImgCanvas.SizeChanged += OnImgCanvasSizeChanged;
     }
 
     private void OnImgCanvasSizeChanged(object? sender, SizeChangedEventArgs e)
@@ -63,10 +62,12 @@ public partial class MainWindow : Window
         _startPoint = null;
     }
 
-    private void SetBounds(object sender = null, RoutedEventArgs args = null)
+    private void SetBounds(object? sender = null, RoutedEventArgs? args = null)
     {
-        DataSourceInstance!.PositioningConfig.XMultiplexer = ImgCanvas.Bounds.Width;
-        DataSourceInstance!.PositioningConfig.YMultiplexer = ImgCanvas.Bounds.Height;
+        DataSourceInstance!.PositioningConfig.SetCoefs(
+            x: ImgCanvas.Bounds.Width,
+            y: ImgCanvas.Bounds.Height
+        );
     }
 
     private static (Point Start, Point End) ChouseStartAndEndPoint(ref Point lhs, ref Point rhs)
