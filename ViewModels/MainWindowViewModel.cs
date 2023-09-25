@@ -50,6 +50,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     public SearchObjectViewModel SearchObjectViewModel { get; }
 
     private bool _isRecursionMethodSelected;
+    private RecursialMethodConfigurationViewModel _recursialMethodConfig = new();
 
     public bool IsRecursionMethodSelected
     {
@@ -57,7 +58,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         set
         {
             if (value)
-                MethodConfigViewModel = new RecursialMethodConfigurationViewModel();
+                MethodConfigViewModel = _recursialMethodConfig;
             else
                 MethodConfigViewModel = null;
             this.RaiseAndSetIfChanged(ref _isRecursionMethodSelected, value);
@@ -67,13 +68,14 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     private bool _isWeightCoefficientsMethodSelected;
 
+    private WeightCoefficientsMethodConfigurationViewModel _weightMethodConfig = new();
     public bool IsWeightCoefficientsMethodSelected
     {
         get => _isWeightCoefficientsMethodSelected;
         set
         {
             if (value)
-                MethodConfigViewModel = new WeightCoefficientsMethodConfigurationViewModel();
+                MethodConfigViewModel = _weightMethodConfig;
             else
                 MethodConfigViewModel = null;
             this.RaiseAndSetIfChanged(ref _isWeightCoefficientsMethodSelected, value);
@@ -82,14 +84,14 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
 
     private bool _isInterpolationSelected;
-
+    private InterpolationMethodConfigurationViewModel _interpolationMethodConfig = new();
     public bool IsInterpolationSelected
     {
         get => _isInterpolationSelected;
         set
         {
             if (value)
-                MethodConfigViewModel = new InterpolationMethodConfigurationViewModel();
+                MethodConfigViewModel = _interpolationMethodConfig;
             else
                 MethodConfigViewModel = null;
             this.RaiseAndSetIfChanged(ref _isInterpolationSelected, value);
@@ -127,8 +129,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     {
         ImageStorageFile = null;
         SourceImage = null;
-        if (_rectsConfigsData.TryGetValue(MethodConfigViewModel, out var lst))
-            _rectsConfigsData[MethodConfigViewModel] = null;
+        if (_rectsConfigsData.TryGetValue(MethodConfigViewModel, out _))
+            _rectsConfigsData[MethodConfigViewModel].Clear();
         CurrentImageRectangles.Clear();
     }
 
@@ -292,10 +294,11 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     private void SetNewSizesToRectangles(double oldFieldWidth, double oldFieldHeight)
     {
-        if (_rectsConfigsData.TryGetValue(MethodConfigViewModel, out var list) && list is not null)
+        var list = _rectsConfigsData.FirstOrDefault(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).Value;
+        if (list is not null)
         {
             CurrentImageRectangles.Clear();
-            CurrentImageRectangles.AddRange(list.Select(sr => ModifyRectByConfigs(sr)));
+            CurrentImageRectangles.AddRange(list.Select(ModifyRectByConfigs));
         }
         else
         {
@@ -312,7 +315,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     private string datasDirName = "data";
 
-    public async Task SaveRectanglesToFile()
+    public void SaveRectanglesToFile()
     {
         if (ImageStorageFile is null)
             return;
@@ -341,13 +344,19 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         double fieldWidth = PositioningConfig.XMultiplexer;
         double fieldHeight = PositioningConfig.YMultiplexer;
 
-        _rectsConfigsData[MethodConfigViewModel] = CurrentImageRectangles
+        
+        var key = _rectsConfigsData.FirstOrDefault(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).Key;
+        if (key is null)
+            key = MethodConfigViewModel;
+
+        _rectsConfigsData[key] = CurrentImageRectangles
             .Select(uir => ModifyRectToSave(uir, fieldWidth, fieldHeight))
             .ToList();
 
         CurrentImageRectangles.Clear();
 
         JsonSerializer.Serialize(fileStream, _rectsConfigsData.Select(x => new DictItem { Key = x.Key, Value = x.Value }).ToList(), _jsonOptions);
+        _rectsConfigsData.Clear();
     }
 }
 
