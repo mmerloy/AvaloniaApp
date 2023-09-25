@@ -170,7 +170,12 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         FileInfo file = new(ImageStorageFile.Path.LocalPath);
         DirectoryInfo dir = file.Directory!;
         string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
-        string rectsDataFilePath = Path.Combine(dir.FullName, rectsDataFileName);
+        string rectsDataDirPath = Path.Combine(dir.FullName, datasDirName);
+
+        if (!Directory.Exists(rectsDataDirPath))
+            return;
+
+        string rectsDataFilePath = Path.Combine(rectsDataDirPath, rectsDataFileName);
 
         if (!File.Exists(rectsDataFilePath))
             return;
@@ -305,6 +310,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         }
     }
 
+    private string datasDirName = "data";
+
     public async Task SaveRectanglesToFile()
     {
         if (ImageStorageFile is null)
@@ -316,7 +323,12 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         FileInfo file = new(ImageStorageFile.Path.LocalPath);
         DirectoryInfo dir = file.Directory!;
         string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
-        string rectsDataFilePath = Path.Combine(dir.FullName, rectsDataFileName);
+        string rectsDataDirPath = Path.Combine(dir.FullName, datasDirName);
+
+        if(!Directory.Exists(rectsDataDirPath))
+            Directory.CreateDirectory(rectsDataDirPath);
+
+        string rectsDataFilePath = Path.Combine(rectsDataDirPath, rectsDataFileName);
         if (File.Exists(rectsDataFilePath))
         {
             using var fileReadStream = File.OpenRead(rectsDataFilePath);
