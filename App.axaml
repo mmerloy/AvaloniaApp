@@ -82,17 +82,17 @@
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Яркость"
 							   VerticalAlignment="Center" />
-					<CheckBox HorizontalAlignment="Right"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding Brightness}"/>
 				</DockPanel>
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Контрастность"
-							   VerticalAlignment="Center" />
-					<CheckBox HorizontalAlignment="Right"/>
+							   VerticalAlignment="Center"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding ContrastRatio}"/>
 				</DockPanel>
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Цвет"
 							   VerticalAlignment="Center" />
-					<CheckBox HorizontalAlignment="Right"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding Color}"/>
 				</DockPanel>
 			</StackPanel>
 		</DataTemplate>

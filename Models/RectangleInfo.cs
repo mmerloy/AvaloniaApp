@@ -1,8 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace AvaloniaFirstApp.Models;
 
 [DebuggerDisplay($"{{{nameof(StartPoint)}}}, W={{{nameof(Width)}}}, H={{{nameof(Height)}}}")]
+[Serializable]
 public class RectangleInfo : ICloneable<RectangleInfo>
 {
     public RectanglePoint? StartPoint { get; set; }

@@ -45,13 +45,15 @@
 						<RadioButton
 							GroupName="Group object type"
 							Content="Окружность"
-							IsChecked="True"/>
+							IsChecked="{Binding SearchObjectViewModel.Circle}"/>
 						<RadioButton
 							GroupName="Group object type"
-							Content="Линия"/>
+							Content="Линия"
+							IsChecked="{Binding SearchObjectViewModel.Line}"/>
 						<RadioButton
 							GroupName="Group object type"
-							Content="Неровность"/>
+							Content="Неровность"
+							IsChecked="{Binding SearchObjectViewModel.NonDirectLine}"/>
 					</StackPanel>
 
 				</HeaderedContentControl>

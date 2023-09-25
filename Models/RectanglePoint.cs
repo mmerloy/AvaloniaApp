@@ -1,8 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace AvaloniaFirstApp.Models;
 
 [DebuggerDisplay($"X={{{nameof(X)}}}, Y={{{nameof(Y)}}}")]
+[Serializable]
 public class RectanglePoint : ICloneable<RectanglePoint>
 {
     public double X { get; set; }

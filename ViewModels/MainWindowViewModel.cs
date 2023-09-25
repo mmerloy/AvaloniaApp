@@ -23,11 +23,31 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     public MainWindowViewModel()
     {
         PositioningConfig = new();
+        IsRecursionMethodSelected = true;
+        SearchObjectViewModel = new() {
+            Circle = true
+        };
+        SearchObjectViewModel.SetSearchType += SetSearchTypeToConfig;
         PositioningConfig.SizesChanged += SetNewSizesToRectangles;
     }
 
+    private void SetSearchTypeToConfig(SearchObjectType ot)
+    {
+        MethodConfigViewModel.SearchObject = ot;
+    }
+
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        WriteIndented = true,
+    };
+
+    /// <summary>Данные о сохраненных прямоугольниках в координатах действительного источника изображения, не UI.</summary>
+    private Dictionary<MethodConfigurationViewModel, List<RectangleInfo>> _rectsConfigsData = new();
+
     /// <summary>Конфиг, для передачи данных о размере поля, на котором прорисовываются прямоугольники.</summary>
     public PositioningConfigViewModel PositioningConfig { get; }
+
+    public SearchObjectViewModel SearchObjectViewModel { get; }
 
     private bool _isRecursionMethodSelected;
 
@@ -100,9 +120,6 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     /// <summary>Данные о файле, в котором храниться демонстрируемое в UI изображение <see cref="SourceImage"/>.</summary>
     public IStorageFile? ImageStorageFile { get; private set; }
 
-    /// <summary>Данные о сохраненных прямоугольниках в координатах действительного источника изображения, не UI.</summary>
-    public List<RectangleInfo>? RectanglesInfoFromImageSource { get; private set; }
-
     /// <summary>
     /// Метод очистки поля для изображения
     /// </summary>
@@ -110,7 +127,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     {
         ImageStorageFile = null;
         SourceImage = null;
-        RectanglesInfoFromImageSource = null;
+        if (_rectsConfigsData.TryGetValue(MethodConfigViewModel, out var lst))
+            _rectsConfigsData[MethodConfigViewModel] = null;
         CurrentImageRectangles.Clear();
     }
 
@@ -149,23 +167,37 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         CurrentImageRectangles.Clear();
 
-        string? notFullCoverage = null;
-        if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
-            notFullCoverage = model.NotAllCoverage.ToString().Replace(".", ",");
+        FileInfo file = new(ImageStorageFile.Path.LocalPath);
+        DirectoryInfo dir = file.Directory!;
+        string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
+        string rectsDataFilePath = Path.Combine(dir.FullName, rectsDataFileName);
 
-        string rectsFilePath = ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects";
-
-        if (!File.Exists(rectsFilePath))
+        if (!File.Exists(rectsDataFilePath))
             return;
 
-        using var fileReadStream = File.OpenRead(rectsFilePath);
+        using var fileStream = File.OpenRead(rectsDataFilePath);
 
-        RectanglesInfoFromImageSource = await JsonSerializer.DeserializeAsync<List<RectangleInfo>>(fileReadStream);
+        _rectsConfigsData = _rectsConfigsData = JsonSerializer.Deserialize<List<DictItem>>(fileStream, _jsonOptions)
+                .ToDictionary(i => i.Key, i => i.Value);
 
-        if (RectanglesInfoFromImageSource is null || !RectanglesInfoFromImageSource.Any())
-            return;
+        CurrentImageRectangles
+            .AddRange(_rectsConfigsData.Where(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).SelectMany(sr => sr.Value.Select(ModifyRectByConfigs)));
+    }
 
-        CurrentImageRectangles.AddRange(RectanglesInfoFromImageSource.Select(sr => ModifyRectByConfigs(sr)));
+    public static bool MethodConfigViewModelEquals(MethodConfigurationViewModel x, MethodConfigurationViewModel y)
+    {
+        if (x.GetType() != y.GetType())
+            return false;
+
+        var type = x.GetType();
+        if (type == typeof(WeightCoefficientsMethodConfigurationViewModel))
+            return ((IEquatable<WeightCoefficientsMethodConfigurationViewModel>)x).Equals((WeightCoefficientsMethodConfigurationViewModel)y);
+        else if (type == typeof(RecursialMethodConfigurationViewModel))
+            return ((IEquatable<RecursialMethodConfigurationViewModel>)x).Equals((RecursialMethodConfigurationViewModel)y);
+        else if (type == typeof(InterpolationMethodConfigurationViewModel))
+            return ((IEquatable<InterpolationMethodConfigurationViewModel>)x).Equals((InterpolationMethodConfigurationViewModel)y);
+        else
+            return false;
     }
 
     public void AddRectangleToImage(double startX, double startY, double endX, double endY)
@@ -255,10 +287,10 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     private void SetNewSizesToRectangles(double oldFieldWidth, double oldFieldHeight)
     {
-        if (RectanglesInfoFromImageSource is not null)
+        if (_rectsConfigsData.TryGetValue(MethodConfigViewModel, out var list) && list is not null)
         {
             CurrentImageRectangles.Clear();
-            CurrentImageRectangles.AddRange(RectanglesInfoFromImageSource.Select(sr => ModifyRectByConfigs(sr)));
+            CurrentImageRectangles.AddRange(list.Select(sr => ModifyRectByConfigs(sr)));
         }
         else
         {
@@ -278,22 +310,39 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         if (ImageStorageFile is null)
             return;
 
-        string? notFullCoverage = null;
-        if (MethodConfigViewModel is RecursialMethodConfigurationViewModel model)
-            notFullCoverage = model.NotAllCoverage.ToString().Replace(".", ",");
+        if (MethodConfigViewModel is null)
+            return;
 
-        using var fileStream = File.Open(ImageStorageFile.Path.LocalPath + $"{notFullCoverage}.rects", FileMode.Create);
+        FileInfo file = new(ImageStorageFile.Path.LocalPath);
+        DirectoryInfo dir = file.Directory!;
+        string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
+        string rectsDataFilePath = Path.Combine(dir.FullName, rectsDataFileName);
+        if (File.Exists(rectsDataFilePath))
+        {
+            using var fileReadStream = File.OpenRead(rectsDataFilePath);
+            _rectsConfigsData = JsonSerializer.Deserialize<List<DictItem>>(fileReadStream, _jsonOptions)
+                .ToDictionary(i => i.Key, i => i.Value);
+        }
+
+        using var fileStream = File.Open(rectsDataFilePath, FileMode.Create);
 
         double fieldWidth = PositioningConfig.XMultiplexer;
         double fieldHeight = PositioningConfig.YMultiplexer;
 
-        var rectangleInfosTofile = CurrentImageRectangles
+        _rectsConfigsData[MethodConfigViewModel] = CurrentImageRectangles
             .Select(uir => ModifyRectToSave(uir, fieldWidth, fieldHeight))
             .ToList();
 
         CurrentImageRectangles.Clear();
 
-        await JsonSerializer.SerializeAsync(fileStream, rectangleInfosTofile);
+        JsonSerializer.Serialize(fileStream, _rectsConfigsData.Select(x => new DictItem { Key = x.Key, Value = x.Value }).ToList(), _jsonOptions);
     }
+}
+
+[Serializable]
+internal class DictItem
+{
+    public MethodConfigurationViewModel Key { get; set; }
+    public List<RectangleInfo> Value { get; set; }
 }
 
