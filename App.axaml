@@ -46,7 +46,7 @@
 								Text="{Binding Inaccuracy}"/>
 				</DockPanel>
 				<DockPanel>
-					<TextBlock DockPanel.Dock="Left" Text="Неполное поерытие"
+					<TextBlock DockPanel.Dock="Left" Text="Неполное покрытие"
 							   VerticalAlignment="Center" />
 					<TextBox VerticalAlignment="Center"
 							  Margin="20 0 0 0"
@@ -62,6 +62,11 @@
 					<TextBox VerticalAlignment="Center"
 								Margin="20 0 0 0"
 								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Кол-во интервалов"
+							   VerticalAlignment="Center" />
+					<NumericUpDown Value="{Binding InterpolationCount}" Maximum="10" Minimum="0" />
 				</DockPanel>
 			</StackPanel>
 		</DataTemplate>

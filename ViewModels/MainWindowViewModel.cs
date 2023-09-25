@@ -216,8 +216,9 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
             double k = rg.NextDouble();
             k *= rg.Next() % 2 == 0 ? 1 : -1;
 
-            double changingWidth = MethodConfigViewModel.Inaccuracy / rectClone.Width * k;
-            double changingHeight = MethodConfigViewModel.Inaccuracy / rectClone.Height * k;
+            double H = 130;
+            double changingWidth = MethodConfigViewModel.Inaccuracy / rectClone.Width * k * H;
+            double changingHeight = MethodConfigViewModel.Inaccuracy / rectClone.Height * k * H;
             rectClone.Width = rectClone.Width - changingWidth;
             rectClone.Height = rectClone.Height - changingHeight;
 
