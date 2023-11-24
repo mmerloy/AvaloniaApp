@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using AvaloniaFirstApp.ViewModels;
 using System;
 
@@ -16,6 +17,11 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    private void OnImgCanvasSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        SetBounds();
+    }
+
     private Point? _startPoint = null;
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
@@ -25,6 +31,7 @@ public partial class MainWindow : Window
             return;
 
         _startPoint = e.GetCurrentPoint(imgCanvas).Position;
+
     }
 
     private void OnPointerReleased(object sender, PointerReleasedEventArgs e)
@@ -48,9 +55,19 @@ public partial class MainWindow : Window
 
         (startPoint, endPoint) = ChouseStartAndEndPoint(ref startPoint, ref endPoint);
 
+        SetBounds();
+
         DataSourceInstance.AddRectangleToImage(startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
 
         _startPoint = null;
+    }
+
+    private void SetBounds(object? sender = null, RoutedEventArgs? args = null)
+    {
+        DataSourceInstance!.PositioningConfig.SetCoefs(
+            x: ImgCanvas.Bounds.Width,
+            y: ImgCanvas.Bounds.Height
+        );
     }
 
     private static (Point Start, Point End) ChouseStartAndEndPoint(ref Point lhs, ref Point rhs)

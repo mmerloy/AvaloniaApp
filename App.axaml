@@ -46,7 +46,7 @@
 								Text="{Binding Inaccuracy}"/>
 				</DockPanel>
 				<DockPanel>
-					<TextBlock DockPanel.Dock="Left" Text="Неполное поерытие"
+					<TextBlock DockPanel.Dock="Left" Text="Неполное покрытие"
 							   VerticalAlignment="Center" />
 					<TextBox VerticalAlignment="Center"
 							  Margin="20 0 0 0"
@@ -63,6 +63,11 @@
 								Margin="20 0 0 0"
 								Text="{Binding Inaccuracy}"/>
 				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Кол-во интервалов"
+							   VerticalAlignment="Center" />
+					<NumericUpDown Value="{Binding InterpolationCount}" Maximum="10" Minimum="0" />
+				</DockPanel>
 			</StackPanel>
 		</DataTemplate>
 		<DataTemplate DataType="{x:Type vm:WeightCoefficientsMethodConfigurationViewModel}">
@@ -77,17 +82,17 @@
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Яркость"
 							   VerticalAlignment="Center" />
-					<CheckBox HorizontalAlignment="Right"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding Brightness}"/>
 				</DockPanel>
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Контрастность"
-							   VerticalAlignment="Center" />
-					<CheckBox HorizontalAlignment="Right"/>
+							   VerticalAlignment="Center"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding ContrastRatio}"/>
 				</DockPanel>
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Цвет"
 							   VerticalAlignment="Center" />
-					<CheckBox HorizontalAlignment="Right"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding Color}"/>
 				</DockPanel>
 			</StackPanel>
 		</DataTemplate>
