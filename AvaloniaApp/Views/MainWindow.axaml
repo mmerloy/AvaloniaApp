@@ -6,12 +6,13 @@
         xmlns:m="clr-namespace:AvaloniaFirstApp.Models"
 		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaFirstApp.MainWindow"
-        Title="AvaloniaFirstApp" FontFamily="Times new roman"
+        Title="Анализатор дефектов" FontFamily="Times new roman"
 		x:DataType="vm:MainWindowViewModel"
 		WindowState="Maximized"
 		>
 	<Window.KeyBindings>
 		<KeyBinding Command="{Binding SaveRectanglesToFile}" Gesture="Ctrl+E"/>
+		<KeyBinding Command="{Binding SaveDefectsFromImage}" Gesture="Ctrl+D"/>
 	</Window.KeyBindings>
 
 	<TabControl>
@@ -156,7 +157,7 @@
 			<DockPanel>
 				<UniformGrid DockPanel.Dock="Top" HorizontalAlignment="Left">
 					<Button Content="Обновить список" Command="{Binding LoadSavedUserProfiles}"/>
-					<Button Content="Применить профиль" Command="{Binding SetSelectedSavedUserProfile}"/>
+					<Button Content="Применить профиль" Command="{Binding SetSelectedSavedUserProfile}" IsEnabled="{Binding SelectedUserProfile, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 				</UniformGrid>
 
 				<DataGrid ItemsSource="{Binding SavedUserProfiles}"

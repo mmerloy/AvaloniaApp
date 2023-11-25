@@ -5,6 +5,7 @@ using Avalonia.Platform.Storage;
 using AvaloniaFirstApp.Infrastructure.Services;
 using AvaloniaFirstApp.Models;
 using Domain;
+using Domain.Defects;
 using Domain.MethodConfigurations;
 using DynamicData;
 using Infrastructure.Database;
@@ -325,6 +326,18 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         JsonSerializer.Serialize(fileStream, _rectsConfigsData.Select(x => new DictItem { Key = x.Key, Value = x.Value }).ToList(), _jsonOptions);
         _rectsConfigsData.Clear();
+    }
+
+    public async Task SaveDefectsFromImage()
+    {
+        IEnumerable<DefectModel> currentDefectsInfo = CurrentImageRectangles
+       .Select((r, i) => new DefectModel() { Location = r, Type = (DefectType)(i % 3) });
+
+        IEnumerable<Defect> defectsToSave =
+            _mapper.Map<IEnumerable<Defect>>(currentDefectsInfo);
+
+        await _db.Defects.AddRangeAsync(defectsToSave);
+        await _db.SaveChangesAsync();
     }
 
     public async Task SaveCurrentProfile()
