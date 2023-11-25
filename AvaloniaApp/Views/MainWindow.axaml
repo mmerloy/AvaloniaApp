@@ -75,7 +75,7 @@
 									GroupName="Group method"
 									Content="Рекурентной коньюнкции"
 									IsChecked="{Binding Path=MethodConfigViewModel, Converter={StaticResource RadioButtonsBoolToMethodConfigObjectConverter}, ConverterParameter={StaticResource RecursialMethodConfigurationViewModel}, Mode=TwoWay}"/>
-								<TextBlock Text="{Binding MethodConfigViewModel}"/>
+								<!--<TextBlock Text="{Binding MethodConfigViewModel}"/>-->
 							</StackPanel>
 						</HeaderedContentControl>
 
@@ -151,7 +151,7 @@
 
 		</TabItem>
 
-		<TabItem Header="Профили" IsSelected="True">
+		<TabItem Header="Профили">
 			<!--TODO: remove-->
 			<DockPanel>
 				<UniformGrid DockPanel.Dock="Top" HorizontalAlignment="Left">

@@ -332,11 +332,17 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         if (MethodConfigViewModel is null)
             return;
 
+        UserProfileSavingWindow userProfileSavingWindow = new();
+        var getUserProfileNameResult = await userProfileSavingWindow.ShowDialog<string>(App.MainWindow!);
+        if (getUserProfileNameResult is null)
+            return;
+
         var domainConfig = _mapper.Map<MethodConfiguration>(MethodConfigViewModel);
         UserProfile newUserProfile = new()
         {
             MethodConfiguration = domainConfig,
-            SearchObjectType = SearchObjectType
+            SearchObjectType = SearchObjectType,
+            Title = getUserProfileNameResult
         };
         await _db.UsersProfiles.AddAsync(newUserProfile);
         await _db.SaveChangesAsync();
