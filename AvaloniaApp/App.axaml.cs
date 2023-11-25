@@ -3,6 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using AvaloniaFirstApp.ViewModels;
+using Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+using System.Reflection;
 
 namespace AvaloniaFirstApp;
 
@@ -31,5 +38,16 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    internal static void ConfigureServices(HostBuilderContext context, IServiceCollection collection)
+    {
+        collection.AddDbContext<ApplicationDbContext>(
+            cfg =>
+            {
+                cfg.UseSqlite(context.Configuration.GetConnectionString("SQLite"),
+                    lc => lc.MigrationsAssembly("DAL.SQLight")
+                );
+            });
     }
 }
