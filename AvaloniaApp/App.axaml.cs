@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using AvaloniaFirstApp.Infrastructure.Services;
 using AvaloniaFirstApp.ViewModels;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -62,5 +63,7 @@ public partial class App : Application
         );
 
         collection.AddSingleton<MainWindowViewModel>();
+
+        collection.AddSingleton<MethodConfigurationViewModelsLocator>();
     }
 }

@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Domain.MethodConfigurations;
+using ReactiveUI;
 using System;
 
 namespace AvaloniaFirstApp.ViewModels;
@@ -13,6 +14,8 @@ public class InterpolationMethodConfigurationViewModel : MethodConfigurationView
         get => _interpolationCount;
         set => this.RaiseAndSetIfChanged(ref _interpolationCount, value);
     }
+
+    public override MethodConfigType GetConfigType() => MethodConfigType.Interpolation;
 
     public bool Equals(InterpolationMethodConfigurationViewModel? other)
     {

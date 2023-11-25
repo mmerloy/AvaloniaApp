@@ -5,7 +5,7 @@ namespace Domain;
 
 public class UserProfile : Entity
 {
-    public string Title { get; set; } = null!;
+    public string Title { get; set; } = "Без названия";
 
     public MethodConfiguration MethodConfiguration { get; set; } = null!;
 

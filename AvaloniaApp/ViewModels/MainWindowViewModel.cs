@@ -2,11 +2,13 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using AvaloniaFirstApp.Infrastructure.Services;
 using AvaloniaFirstApp.Models;
 using Domain;
 using Domain.MethodConfigurations;
 using DynamicData;
 using Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -26,29 +28,19 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 {
     private readonly ApplicationDbContext _db;
     private readonly IMapper _mapper;
+    private readonly MethodConfigurationViewModelsLocator _methodConfigurationLocator;
 
-    public MainWindowViewModel(ApplicationDbContext db, IMapper mapper)
+    public MainWindowViewModel(ApplicationDbContext db, IMapper mapper, MethodConfigurationViewModelsLocator methodConfigurationLocator)
     {
-        PositioningConfig = new();
-        IsRecursionMethodSelected = true;
-        SearchObjectViewModel = new() {
-            Circle = true
-        };
-        SearchObjectViewModel.SetSearchType += SetSearchTypeToConfig;
-        PositioningConfig.SizesChanged += SetNewSizesToRectangles;
         _db = db;
         _mapper = mapper;
+        _methodConfigurationLocator = methodConfigurationLocator;
+        PositioningConfig = new();
+        //IsRecursionMethodSelected = true;
+        PositioningConfig.SizesChanged += SetNewSizesToRectangles;
     }
 
-    private void SetSearchTypeToConfig(SearchObjectType ot)
-    {
-        MethodConfigViewModel.SearchObject = ot;
-    }
-
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        WriteIndented = true,
-    };
+    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
     /// <summary>Данные о сохраненных прямоугольниках в координатах действительного источника изображения, не UI.</summary>
     private Dictionary<MethodConfigurationViewModel, List<RectangleInfo>> _rectsConfigsData = new();
@@ -56,57 +48,12 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     /// <summary>Конфиг, для передачи данных о размере поля, на котором прорисовываются прямоугольники.</summary>
     public PositioningConfigViewModel PositioningConfig { get; }
 
-    public SearchObjectViewModel SearchObjectViewModel { get; }
-
-    private bool _isRecursionMethodSelected;
-    private RecursialMethodConfigurationViewModel _recursialMethodConfig = new();
-
-    public bool IsRecursionMethodSelected
+    private SearchObjectType _searchObjectType = SearchObjectType.Circle;
+    public SearchObjectType SearchObjectType
     {
-        get => _isRecursionMethodSelected;
-        set
-        {
-            if (value)
-                MethodConfigViewModel = _recursialMethodConfig;
-            else
-                MethodConfigViewModel = null;
-            this.RaiseAndSetIfChanged(ref _isRecursionMethodSelected, value);
-        }
-    }
-
-
-    private bool _isWeightCoefficientsMethodSelected;
-
-    private WeightCoefficientsMethodConfigurationViewModel _weightMethodConfig = new();
-    public bool IsWeightCoefficientsMethodSelected
-    {
-        get => _isWeightCoefficientsMethodSelected;
-        set
-        {
-            if (value)
-                MethodConfigViewModel = _weightMethodConfig;
-            else
-                MethodConfigViewModel = null;
-            this.RaiseAndSetIfChanged(ref _isWeightCoefficientsMethodSelected, value);
-        }
-    }
-
-
-    private bool _isInterpolationSelected;
-    private InterpolationMethodConfigurationViewModel _interpolationMethodConfig = new();
-    public bool IsInterpolationSelected
-    {
-        get => _isInterpolationSelected;
-        set
-        {
-            if (value)
-                MethodConfigViewModel = _interpolationMethodConfig;
-            else
-                MethodConfigViewModel = null;
-            this.RaiseAndSetIfChanged(ref _isInterpolationSelected, value);
-        }
-    }
-
+        get => _searchObjectType;
+        set => MethodConfigViewModel.SearchObject = this.RaiseAndSetIfChanged(ref _searchObjectType, value);
+    }//Устанавливаем 
 
     private MethodConfigurationViewModel? _methodConfigViewModel;
 
@@ -130,6 +77,17 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
     /// <summary>Данные о файле, в котором храниться демонстрируемое в UI изображение <see cref="SourceImage"/>.</summary>
     public IStorageFile? ImageStorageFile { get; private set; }
+
+    /// <summary>Сохраненные профили пользователя.</summary>
+    public ObservableCollection<UserProfileModel> SavedUserProfiles { get; set; }
+        = new();
+
+    private UserProfileModel? _currentProfile = null;
+    public UserProfileModel? SelectedUserProfile
+    {
+        get => _currentProfile;
+        set => this.RaiseAndSetIfChanged(ref _currentProfile, value);
+    }
 
     /// <summary>
     /// Метод очистки поля для изображения
@@ -322,7 +280,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         }
     }
 
-    private string datasDirName = "data";
+    private readonly string datasDirName = "data";
 
     public void SaveRectanglesToFile()
     {
@@ -337,7 +295,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
         string rectsDataDirPath = Path.Combine(dir.FullName, datasDirName);
 
-        if(!Directory.Exists(rectsDataDirPath))
+        if (!Directory.Exists(rectsDataDirPath))
             Directory.CreateDirectory(rectsDataDirPath);
 
         string rectsDataFilePath = Path.Combine(rectsDataDirPath, rectsDataFileName);
@@ -353,7 +311,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         double fieldWidth = PositioningConfig.XMultiplexer;
         double fieldHeight = PositioningConfig.YMultiplexer;
 
-        
+
         var key = _rectsConfigsData.FirstOrDefault(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).Key;
         if (key is null)
             key = MethodConfigViewModel;
@@ -377,17 +335,40 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         UserProfile newUserProfile = new()
         {
             MethodConfiguration = domainConfig,
-            SearchObjectType = _mapper.Map<SearchObjectType>(SearchObjectViewModel)
+            SearchObjectType = SearchObjectType
         };
         await _db.UsersProfiles.AddAsync(newUserProfile);
         await _db.SaveChangesAsync();
+
+        var profileModel = _mapper.Map<UserProfileModel>(newUserProfile);
+        profileModel.MethodConfig 
+            = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(MethodConfigViewModel.GetConfigType())!;
+
+        SavedUserProfiles.Add(profileModel);
+    }
+
+    /// <summary>Установить профиль, выбранный во вкладке "Профили".</summary>
+    public void SetSelectedSavedUserProfile()
+    {
+        if (SelectedUserProfile is null)
+            return;
+
+        UserProfile? userProfile = _db.UsersProfiles
+            .Include(up => up.MethodConfiguration)
+            .FirstOrDefault(up => up.Id == SelectedUserProfile.Id);
+        if (userProfile is null)
+            throw new InvalidOperationException("Нет такого профиля в БД");
+
+        var locatedConfig = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(userProfile.MethodConfiguration.ConfigType);
+        _mapper.Map(userProfile.MethodConfiguration, locatedConfig);//Копирование данных в аллоцированный конфиг.
+
+        MethodConfigViewModel = locatedConfig;
+    }
+
+    [Serializable]
+    internal class DictItem
+    {
+        public MethodConfigurationViewModel Key { get; set; }
+        public List<RectangleInfo> Value { get; set; }
     }
 }
-
-[Serializable]
-internal class DictItem
-{
-    public MethodConfigurationViewModel Key { get; set; }
-    public List<RectangleInfo> Value { get; set; }
-}
-

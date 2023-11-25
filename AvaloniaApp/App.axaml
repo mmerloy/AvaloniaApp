@@ -1,13 +1,15 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		     xmlns:vm="clr-namespace:AvaloniaFirstApp.ViewModels"
+		     xmlns:c="clr-namespace:AvaloniaFirstApp.Infrastructure.Converters"
              x:Class="AvaloniaFirstApp.App"
              RequestedThemeVariant="Light">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Styles>
 		<FluentTheme />
-		
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
 		<Style Selector="TabItem">
 			<Setter	Property="FontSize" Value="16"/>
 		</Style>
@@ -104,4 +106,14 @@
 			</StackPanel>
 		</DataTemplate>
 	</Application.DataTemplates>
+
+	<Application.Resources>
+		<c:RadioButtonsBoolToSearchObjectConverter x:Key="RadioButtonsBoolToSearchObjectConverter"/>
+		<c:RadioButtonsBoolToMethodConfigObjectConverter x:Key="RadioButtonsBoolToMethodConfigObjectConverter"/>
+		
+		
+		<vm:InterpolationMethodConfigurationViewModel x:Key="InterpolationMethodConfigurationViewModel"/>
+		<vm:WeightCoefficientsMethodConfigurationViewModel x:Key="WeightCoefficientsMethodConfigurationViewModel"/>
+		<vm:RecursialMethodConfigurationViewModel x:Key="RecursialMethodConfigurationViewModel"/>
+	</Application.Resources>
 </Application>

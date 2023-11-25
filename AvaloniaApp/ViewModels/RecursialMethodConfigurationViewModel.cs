@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Domain.MethodConfigurations;
+using ReactiveUI;
 using System;
 
 namespace AvaloniaFirstApp.ViewModels;
@@ -12,6 +13,8 @@ public class RecursialMethodConfigurationViewModel : MethodConfigurationViewMode
         get => _notAllCoverage;
         set => this.RaiseAndSetIfChanged(ref _notAllCoverage, value);
     }
+
+    public override MethodConfigType GetConfigType() => MethodConfigType.Recursion;
 
     public bool Equals(RecursialMethodConfigurationViewModel? other)
     {

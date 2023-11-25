@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AvaloniaFirstApp.Models;
 using AvaloniaFirstApp.ViewModels;
+using Domain;
 using Domain.MethodConfigurations.Implementation;
 
 namespace AvaloniaFirstApp.AutoMapper
@@ -12,23 +13,14 @@ namespace AvaloniaFirstApp.AutoMapper
             CreateMap<ViewModels.MethodConfigurationViewModel, Domain.MethodConfigurations.MethodConfiguration>()
                 .Include<InterpolationMethodConfigurationViewModel, InterpolationMethodConfiguration>()
                 .Include<WeightCoefficientsMethodConfigurationViewModel, WeightCoefficientsMethodConfiguration>()
-                .Include<RecursialMethodConfigurationViewModel, RecursionMethodConfiguration>();
+                .Include<RecursialMethodConfigurationViewModel, RecursionMethodConfiguration>()
+                .ReverseMap();
             
-            CreateMap<InterpolationMethodConfigurationViewModel, InterpolationMethodConfiguration>();
-            CreateMap<WeightCoefficientsMethodConfigurationViewModel, WeightCoefficientsMethodConfiguration>();
-            CreateMap<RecursialMethodConfigurationViewModel, RecursionMethodConfiguration>();
+            CreateMap<InterpolationMethodConfigurationViewModel, InterpolationMethodConfiguration>().ReverseMap();
+            CreateMap<WeightCoefficientsMethodConfigurationViewModel, WeightCoefficientsMethodConfiguration>().ReverseMap();
+            CreateMap<RecursialMethodConfigurationViewModel, RecursionMethodConfiguration>().ReverseMap();
 
-            CreateMap<ViewModels.SearchObjectViewModel, SearchObjectType>()
-                .ConvertUsing((source, d) =>
-                {
-                    if (source.Circle)
-                        return SearchObjectType.Circle;
-                    if (source.Line)
-                        return SearchObjectType.Line;
-                    if (source.NonDirectLine)
-                        return SearchObjectType.NotDirectLine;
-                    return SearchObjectType.None;
-                });
+            CreateMap<UserProfile, UserProfileModel>();
         }
     }
 }

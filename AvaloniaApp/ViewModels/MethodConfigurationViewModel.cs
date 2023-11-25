@@ -1,4 +1,5 @@
 ﻿using AvaloniaFirstApp.Models;
+using Domain.MethodConfigurations;
 using ReactiveUI;
 using System;
 using System.Text.Json.Serialization;
@@ -10,8 +11,7 @@ namespace AvaloniaFirstApp.ViewModels;
 [JsonDerivedType(typeof(InterpolationMethodConfigurationViewModel), typeDiscriminator: "Interpolation")]
 [JsonDerivedType(typeof(RecursialMethodConfigurationViewModel), typeDiscriminator: "Recurtial")]
 [JsonDerivedType(typeof(WeightCoefficientsMethodConfigurationViewModel), typeDiscriminator: "Weight")]
-
-public class MethodConfigurationViewModel : ReactiveObject, IEquatable<MethodConfigurationViewModel>
+public abstract class MethodConfigurationViewModel : ReactiveObject
 {
     //public virtual string MethodName => "BaseMethod";
 
@@ -24,6 +24,7 @@ public class MethodConfigurationViewModel : ReactiveObject, IEquatable<MethodCon
         set => this.RaiseAndSetIfChanged(ref _searchObject, value);
     }
 
+    public abstract MethodConfigType GetConfigType();
 
     private double _inaccuracy = 0;
     public double Inaccuracy
@@ -32,8 +33,8 @@ public class MethodConfigurationViewModel : ReactiveObject, IEquatable<MethodCon
         set => this.RaiseAndSetIfChanged(ref _inaccuracy, value);
     }
 
-    public bool Equals(MethodConfigurationViewModel? other)
-    {
-        return Inaccuracy == other.Inaccuracy && SearchObject == other.SearchObject;
-    }
+    //public bool Equals(MethodConfigurationViewModel? other)
+    //{
+    //    return Inaccuracy == other.Inaccuracy && SearchObject == other.SearchObject;
+    //}
 }

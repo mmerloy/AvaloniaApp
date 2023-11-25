@@ -1,7 +1,6 @@
-﻿using ReactiveUI;
+﻿using Domain.MethodConfigurations;
+using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace AvaloniaFirstApp.ViewModels;
 
@@ -29,6 +28,8 @@ public class WeightCoefficientsMethodConfigurationViewModel : MethodConfiguratio
         get => _brightness;
         set => this.RaiseAndSetIfChanged(ref _brightness, value);
     }
+
+    public override MethodConfigType GetConfigType() => MethodConfigType.Weighted;
 
     public bool Equals(WeightCoefficientsMethodConfigurationViewModel? other)
     {

@@ -42,15 +42,16 @@
 								<RadioButton
 									GroupName="Group object type"
 									Content="Окружность"
-									IsChecked="{Binding SearchObjectViewModel.Circle}"/>
+									IsChecked="{Binding Path=SearchObjectType, Converter={StaticResource RadioButtonsBoolToSearchObjectConverter}, ConverterParameter=1, Mode=TwoWay}"/>
 								<RadioButton
 									GroupName="Group object type"
 									Content="Линия"
-									IsChecked="{Binding SearchObjectViewModel.Line}"/>
+									IsChecked="{Binding Path=SearchObjectType, Converter={StaticResource RadioButtonsBoolToSearchObjectConverter}, ConverterParameter=2, Mode=TwoWay}"/>
 								<RadioButton
 									GroupName="Group object type"
 									Content="Неровность"
-									IsChecked="{Binding SearchObjectViewModel.NonDirectLine}"/>
+									IsChecked="{Binding Path=SearchObjectType, Converter={StaticResource RadioButtonsBoolToSearchObjectConverter}, ConverterParameter=3, Mode=TwoWay}"/>
+								<!--<TextBlock Text="{Binding SearchObjectType}"/>-->
 							</StackPanel>
 
 						</HeaderedContentControl>
@@ -62,7 +63,7 @@
 										>
 							<StackPanel>
 								<!--GroupName задаем, чтобы можно выбрать только один тип-->
-								<RadioButton
+								<!--<RadioButton
 									GroupName="Group method"
 									Content="Метод интерполяции"
 									IsChecked="{Binding Path=IsInterpolationSelected}"/>
@@ -73,7 +74,20 @@
 								<RadioButton
 									GroupName="Group method"
 									Content="Рекурентной коньюнкции"
-									IsChecked="{Binding IsRecursionMethodSelected}"/>
+									IsChecked="{Binding IsRecursionMethodSelected}"/>-->
+								<RadioButton
+									GroupName="Group method"
+									Content="Метод интерполяции"
+									IsChecked="{Binding Path=MethodConfigViewModel, Converter={StaticResource RadioButtonsBoolToMethodConfigObjectConverter}, ConverterParameter={StaticResource InterpolationMethodConfigurationViewModel}, Mode=TwoWay}"/>
+								<RadioButton
+									GroupName="Group method"
+									Content="Метод весовых коэффициентов"
+									IsChecked="{Binding Path=MethodConfigViewModel, Converter={StaticResource RadioButtonsBoolToMethodConfigObjectConverter}, ConverterParameter={StaticResource WeightCoefficientsMethodConfigurationViewModel}, Mode=TwoWay}"/>
+								<RadioButton
+									GroupName="Group method"
+									Content="Рекурентной коньюнкции"
+									IsChecked="{Binding Path=MethodConfigViewModel, Converter={StaticResource RadioButtonsBoolToMethodConfigObjectConverter}, ConverterParameter={StaticResource RecursialMethodConfigurationViewModel}, Mode=TwoWay}"/>
+								<TextBlock Text="{Binding MethodConfigViewModel}"/>
 							</StackPanel>
 						</HeaderedContentControl>
 
@@ -149,8 +163,25 @@
 
 		</TabItem>
 
-		<TabItem Header="Профили">
-			
+		<TabItem Header="Профили" IsSelected="True">
+			<!--TODO: remove-->
+			<DockPanel>
+				<UniformGrid DockPanel.Dock="Top" HorizontalAlignment="Left">
+					<Button Content="Обновить список"/>
+					<Button Content="Применить профиль" Command="{Binding SetSelectedSavedUserProfile}"/>
+				</UniformGrid>
+
+				<DataGrid ItemsSource="{Binding SavedUserProfiles}"
+						  AutoGenerateColumns="False"
+						  IsReadOnly="True" SelectionMode="Single"
+						  HorizontalAlignment="Left"
+						  SelectedItem="{Binding SelectedUserProfile}">
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
+						<DataGridTextColumn Header="Наименование" Binding="{Binding Title}"/>
+					</DataGrid.Columns>
+				</DataGrid>
+			</DockPanel>
 		</TabItem>
 	</TabControl>
 
