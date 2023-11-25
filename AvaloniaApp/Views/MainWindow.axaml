@@ -63,18 +63,6 @@
 										>
 							<StackPanel>
 								<!--GroupName задаем, чтобы можно выбрать только один тип-->
-								<!--<RadioButton
-									GroupName="Group method"
-									Content="Метод интерполяции"
-									IsChecked="{Binding Path=IsInterpolationSelected}"/>
-								<RadioButton
-									GroupName="Group method"
-									Content="Метод весовых коэффициентов"
-									IsChecked="{Binding Path=IsWeightCoefficientsMethodSelected}"/>
-								<RadioButton
-									GroupName="Group method"
-									Content="Рекурентной коньюнкции"
-									IsChecked="{Binding IsRecursionMethodSelected}"/>-->
 								<RadioButton
 									GroupName="Group method"
 									Content="Метод интерполяции"

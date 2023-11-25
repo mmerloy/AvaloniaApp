@@ -35,8 +35,9 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         _db = db;
         _mapper = mapper;
         _methodConfigurationLocator = methodConfigurationLocator;
+        MethodConfigViewModel = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(MethodConfigType.Interpolation);
+
         PositioningConfig = new();
-        //IsRecursionMethodSelected = true;
         PositioningConfig.SizesChanged += SetNewSizesToRectangles;
     }
 
@@ -52,8 +53,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     public SearchObjectType SearchObjectType
     {
         get => _searchObjectType;
-        set => MethodConfigViewModel.SearchObject = this.RaiseAndSetIfChanged(ref _searchObjectType, value);
-    }//Устанавливаем 
+        set => this.RaiseAndSetIfChanged(ref _searchObjectType, value);
+    }
 
     private MethodConfigurationViewModel? _methodConfigViewModel;
 
@@ -348,21 +349,30 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     }
 
     /// <summary>Установить профиль, выбранный во вкладке "Профили".</summary>
-    public void SetSelectedSavedUserProfile()
+    public async Task SetSelectedSavedUserProfile()
     {
         if (SelectedUserProfile is null)
             return;
 
-        UserProfile? userProfile = _db.UsersProfiles
+        UserProfile? userProfile = await _db.UsersProfiles
             .Include(up => up.MethodConfiguration)
-            .FirstOrDefault(up => up.Id == SelectedUserProfile.Id);
+            .FirstOrDefaultAsync(up => up.Id == SelectedUserProfile.Id);
         if (userProfile is null)
             throw new InvalidOperationException("Нет такого профиля в БД");
 
-        var locatedConfig = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(userProfile.MethodConfiguration.ConfigType);
+        var locatedConfig = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(userProfile.MethodConfiguration.ConfigType)!;
         _mapper.Map(userProfile.MethodConfiguration, locatedConfig);//Копирование данных в аллоцированный конфиг.
+        SearchObjectType = userProfile.SearchObjectType;
 
         MethodConfigViewModel = locatedConfig;
+    }
+
+    /// <summary>Загрузка профилей из БД.</summary>
+    public async Task LoadSavedUserProfiles()
+    {
+        SelectedUserProfile = null;
+
+
     }
 
     [Serializable]

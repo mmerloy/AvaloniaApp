@@ -13,16 +13,14 @@ namespace AvaloniaFirstApp.ViewModels;
 [JsonDerivedType(typeof(WeightCoefficientsMethodConfigurationViewModel), typeDiscriminator: "Weight")]
 public abstract class MethodConfigurationViewModel : ReactiveObject
 {
-    //public virtual string MethodName => "BaseMethod";
+    //private SearchObjectType _searchObject;
 
-    private SearchObjectType _searchObject;
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public SearchObjectType SearchObject
-    {
-        get => _searchObject;
-        set => this.RaiseAndSetIfChanged(ref _searchObject, value);
-    }
+    //[JsonConverter(typeof(JsonStringEnumConverter))]
+    //public SearchObjectType SearchObject
+    //{
+    //    get => _searchObject;
+    //    set => this.RaiseAndSetIfChanged(ref _searchObject, value);
+    //}
 
     public abstract MethodConfigType GetConfigType();
 
