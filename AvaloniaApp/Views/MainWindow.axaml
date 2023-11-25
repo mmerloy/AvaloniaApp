@@ -155,7 +155,7 @@
 			<!--TODO: remove-->
 			<DockPanel>
 				<UniformGrid DockPanel.Dock="Top" HorizontalAlignment="Left">
-					<Button Content="Обновить список"/>
+					<Button Content="Обновить список" Command="{Binding LoadSavedUserProfiles}"/>
 					<Button Content="Применить профиль" Command="{Binding SetSelectedSavedUserProfile}"/>
 				</UniformGrid>
 

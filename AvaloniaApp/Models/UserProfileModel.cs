@@ -1,4 +1,4 @@
-﻿using AvaloniaFirstApp.ViewModels;
+﻿using Domain.MethodConfigurations;
 
 namespace AvaloniaFirstApp.Models;
 
@@ -8,7 +8,7 @@ public class UserProfileModel
 
     public int Id { get; set; }
 
-    public MethodConfigurationViewModel MethodConfig { get; set; } = null!;
+    public MethodConfigType MethodConfigType { get; set; }
 
     public SearchObjectType SearchObjectType { get; set; }
 }

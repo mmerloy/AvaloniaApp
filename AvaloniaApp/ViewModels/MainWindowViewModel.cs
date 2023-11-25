@@ -342,8 +342,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         await _db.SaveChangesAsync();
 
         var profileModel = _mapper.Map<UserProfileModel>(newUserProfile);
-        profileModel.MethodConfig 
-            = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(MethodConfigViewModel.GetConfigType())!;
+        profileModel.MethodConfigType = MethodConfigViewModel.GetConfigType();
 
         SavedUserProfiles.Add(profileModel);
     }
@@ -368,11 +367,14 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     }
 
     /// <summary>Загрузка профилей из БД.</summary>
-    public async Task LoadSavedUserProfiles()
+    public void LoadSavedUserProfiles()
     {
         SelectedUserProfile = null;
-
-
+        var profileModels = _mapper.Map<IEnumerable<UserProfileModel>>(
+            _db.UsersProfiles.Include(p => p.MethodConfiguration).AsEnumerable()
+        );
+        SavedUserProfiles.Clear();
+        SavedUserProfiles.AddRange(profileModels);
     }
 
     [Serializable]
