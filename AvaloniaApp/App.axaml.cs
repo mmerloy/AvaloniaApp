@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace AvaloniaFirstApp;
@@ -30,6 +31,12 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            using (var scope = Host.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database;
+                db.EnsureCreated();
+            }
+
             MainWindow = new MainWindow()
             {
                 DataContext = Host.Services.GetRequiredService<MainWindowViewModel>()

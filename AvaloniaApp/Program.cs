@@ -1,5 +1,5 @@
 ﻿using Avalonia;
-using Infrastructure.Database;
+using AvaloniaFirstApp.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +17,7 @@ internal class Program
     {
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
+
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
