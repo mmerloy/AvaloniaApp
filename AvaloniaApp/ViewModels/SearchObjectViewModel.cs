@@ -6,7 +6,7 @@ namespace AvaloniaFirstApp.ViewModels;
 
 public class SearchObjectViewModel : ReactiveUI.ReactiveObject
 {
-    private bool _circle;
+    private bool _circle = true;
 
     public bool Circle
     {
@@ -14,7 +14,7 @@ public class SearchObjectViewModel : ReactiveUI.ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _circle, value);
-            if(value)
+            if (value)
                 SetSearchType?.Invoke(SearchObjectType.Circle);
         }
     }

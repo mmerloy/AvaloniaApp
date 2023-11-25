@@ -22,17 +22,17 @@ public partial class App : Application
 
     public static Window? MainWindow { get; private set; }
 
+    private static IHost? _host;
+
+    public static IHost Host => _host ??= Program.CreateHostBuilder(Environment.GetCommandLineArgs()).Build();
+
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             MainWindow = new MainWindow()
             {
-                DataContext = new MainWindowViewModel()
-                //{
-                //    MyDoubleValue = 119293.111,
-                //    SomeText = "Hello!",
-                //}
+                DataContext = Host.Services.GetRequiredService<MainWindowViewModel>()
             };
             desktop.MainWindow = MainWindow;
         }
@@ -48,6 +48,12 @@ public partial class App : Application
                 cfg.UseSqlite(context.Configuration.GetConnectionString("SQLite"),
                     lc => lc.MigrationsAssembly("DAL.SQLight")
                 );
-            });
+            }, ServiceLifetime.Singleton);
+
+        collection.AddAutoMapper(
+            cfg => cfg.AddProfile<AutoMapper.ModelsProfile>()
+        );
+
+        collection.AddSingleton<MainWindowViewModel>();
     }
 }

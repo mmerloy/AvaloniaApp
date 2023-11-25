@@ -12,7 +12,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<MethodConfiguration> MethodConfigurations { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> contextOptions) : base(contextOptions)
-    { }
+    {
+        Database.EnsureCreated();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

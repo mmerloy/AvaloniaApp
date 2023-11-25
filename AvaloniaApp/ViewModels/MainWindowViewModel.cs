@@ -1,8 +1,12 @@
-﻿using Avalonia.Controls;
+﻿using AutoMapper;
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using AvaloniaFirstApp.Models;
+using Domain;
+using Domain.MethodConfigurations;
 using DynamicData;
+using Infrastructure.Database;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -20,7 +24,10 @@ namespace AvaloniaFirstApp.ViewModels;
 /// </summary>
 public class MainWindowViewModel : ReactiveUI.ReactiveObject
 {
-    public MainWindowViewModel()
+    private readonly ApplicationDbContext _db;
+    private readonly IMapper _mapper;
+
+    public MainWindowViewModel(ApplicationDbContext db, IMapper mapper)
     {
         PositioningConfig = new();
         IsRecursionMethodSelected = true;
@@ -29,6 +36,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         };
         SearchObjectViewModel.SetSearchType += SetSearchTypeToConfig;
         PositioningConfig.SizesChanged += SetNewSizesToRectangles;
+        _db = db;
+        _mapper = mapper;
     }
 
     private void SetSearchTypeToConfig(SearchObjectType ot)
@@ -357,6 +366,21 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         JsonSerializer.Serialize(fileStream, _rectsConfigsData.Select(x => new DictItem { Key = x.Key, Value = x.Value }).ToList(), _jsonOptions);
         _rectsConfigsData.Clear();
+    }
+
+    public async Task SaveCurrentProfile()
+    {
+        if (MethodConfigViewModel is null)
+            return;
+
+        var domainConfig = _mapper.Map<MethodConfiguration>(MethodConfigViewModel);
+        UserProfile newUserProfile = new()
+        {
+            MethodConfiguration = domainConfig,
+            SearchObjectType = _mapper.Map<SearchObjectType>(SearchObjectViewModel)
+        };
+        await _db.UsersProfiles.AddAsync(newUserProfile);
+        await _db.SaveChangesAsync();
     }
 }
 
