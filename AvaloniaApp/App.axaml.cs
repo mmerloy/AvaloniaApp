@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using AvaloniaFirstApp.Infrastructure.Services;
+using AvaloniaFirstApp.Infrastructure.Services.Prediction;
 using AvaloniaFirstApp.ViewModels;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -62,8 +63,10 @@ public partial class App : Application
             cfg => cfg.AddProfile<AutoMapper.ModelsProfile>()
         );
 
+        collection.AddSingleton<IPredictionService>(s => new PredictionServiceStub(123));
         collection.AddSingleton<MainWindowViewModel>();
 
         collection.AddSingleton<MethodConfigurationViewModelsLocator>();
+
     }
 }

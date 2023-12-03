@@ -94,7 +94,7 @@
 									Margin="20 10 40 10"
 									Command="{Binding ClearImage}"/>
 							<Button Content="Распознать"
-									Command="{Binding CreateRectangles}"
+									Command="{Binding MakePrediction}"
 									Click="SetBounds"/>
 						</StackPanel>
 						<Button HorizontalAlignment="Right" Content="Сохранить профиль" Command="{Binding SaveCurrentProfile}"/>

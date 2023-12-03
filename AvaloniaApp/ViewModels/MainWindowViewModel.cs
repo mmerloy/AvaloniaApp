@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using AvaloniaFirstApp.Infrastructure.Services;
+using AvaloniaFirstApp.Infrastructure.Services.Prediction;
 using AvaloniaFirstApp.Models;
 using Domain;
 using Domain.Defects;
@@ -17,6 +18,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AvaloniaFirstApp.ViewModels;
@@ -30,12 +32,18 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     private readonly ApplicationDbContext _db;
     private readonly IMapper _mapper;
     private readonly MethodConfigurationViewModelsLocator _methodConfigurationLocator;
+    private readonly IPredictionService _predictionService;
 
-    public MainWindowViewModel(ApplicationDbContext db, IMapper mapper, MethodConfigurationViewModelsLocator methodConfigurationLocator)
+    public MainWindowViewModel(
+        ApplicationDbContext db, 
+        IMapper mapper, 
+        MethodConfigurationViewModelsLocator methodConfigurationLocator,
+        IPredictionService predictionService)
     {
         _db = db;
         _mapper = mapper;
         _methodConfigurationLocator = methodConfigurationLocator;
+        _predictionService = predictionService;
         MethodConfigViewModel = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(MethodConfigType.Interpolation);
 
         PositioningConfig = new();
@@ -158,6 +166,20 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         CurrentImageRectangles
             .AddRange(_rectsConfigsData.Where(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).SelectMany(sr => sr.Value.Select(ModifyRectByConfigs)));
+    }
+
+    public async Task MakePrediction()
+    {
+        if (ImageStorageFile is null)
+            return;
+
+        CurrentImageRectangles.Clear();
+
+        var defects = await _predictionService.GetDefectsFromImageAsync(ImageStorageFile.Path.LocalPath);
+
+        CurrentImageRectangles.AddRange(
+            defects.Select(d => d.Location).Select(ModifyRectByConfigs)
+        );
     }
 
     public static bool MethodConfigViewModelEquals(MethodConfigurationViewModel x, MethodConfigurationViewModel y)
