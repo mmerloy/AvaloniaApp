@@ -13,7 +13,67 @@
 		<Style Selector="TabItem">
 			<Setter	Property="FontSize" Value="16"/>
 		</Style>
-		
+
+		<Style Selector="NumericUpDown /template/ ButtonSpinner">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DataValidationErrors>
+						<Border Background="{TemplateBinding Background}"
+								BorderBrush="{TemplateBinding BorderBrush}"
+								BorderThickness="{TemplateBinding BorderThickness}"
+								CornerRadius="{TemplateBinding CornerRadius}"
+								MinHeight="{TemplateBinding MinHeight}">
+							<DockPanel>
+								<UniformGrid Rows="2" Name="PART_SpinnerPanel"
+											DockPanel.Dock="Right"
+											IsVisible="{TemplateBinding ShowButtonSpinner}">
+									<RepeatButton Name="PART_IncreaseButton"
+												  Classes="ButtonSpinnerRepeatButton"
+												  VerticalContentAlignment="Center"
+												  Foreground="{TemplateBinding Foreground}"
+												  BorderBrush="{TemplateBinding BorderBrush}"
+												  Background="{TemplateBinding Background}"
+												  FontSize="{TemplateBinding FontSize}">
+										<Path Fill="{TemplateBinding Foreground}"
+											  Width="16"
+											  Height="8"
+											  Stretch="Uniform"
+											  HorizontalAlignment="Center"
+											  VerticalAlignment="Center"
+											  Data="{StaticResource ButtonSpinnerIncreaseButtonIcon}" />
+									</RepeatButton>
+
+									<RepeatButton Name="PART_DecreaseButton"
+												  Classes="ButtonSpinnerRepeatButton"
+												  Foreground="{TemplateBinding Foreground}"
+												  BorderBrush="{TemplateBinding BorderBrush}"
+												  Background="{TemplateBinding Background}"
+												  VerticalContentAlignment="Center"
+												  FontSize="{TemplateBinding FontSize}">
+										<Path Fill="{TemplateBinding Foreground}"
+											  Width="16"
+											  Height="8"
+											  Stretch="Uniform"
+											  HorizontalAlignment="Center"
+											  VerticalAlignment="Center"
+											  Data="{StaticResource ButtonSpinnerDecreaseButtonIcon}" />
+									</RepeatButton>
+								</UniformGrid>
+
+								<ContentPresenter Name="PART_ContentPresenter"
+												  Grid.Column="1"
+												  ContentTemplate="{TemplateBinding ContentTemplate}"
+												  Content="{TemplateBinding Content}"
+												  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+												  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+												  Padding="{TemplateBinding Padding}" />
+							</DockPanel>
+						</Border>
+					</DataValidationErrors>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+
 		<!--Применение стиля ко всем HeaderedContentControl-->
 		<Style Selector="HeaderedContentControl">
 			<Setter Property="Template">
@@ -75,7 +135,8 @@
 				<DockPanel>
 					<TextBlock DockPanel.Dock="Left" Text="Кол-во интервалов"
 							   VerticalAlignment="Center" />
-					<NumericUpDown Value="{Binding InterpolationCount}" Maximum="10" Minimum="0" />
+					<NumericUpDown Value="{Binding InterpolationCount}" Maximum="10" Minimum="1" 
+								   VerticalContentAlignment="Center"/>
 				</DockPanel>
 			</StackPanel>
 		</DataTemplate>
