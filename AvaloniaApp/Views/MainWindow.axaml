@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:AvaloniaFirstApp.ViewModels"
         xmlns:m="clr-namespace:AvaloniaFirstApp.Models"
+		xmlns:progRing="clr-namespace:AvaloniaProgressRing;assembly=AvaloniaProgressRing"
 		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaFirstApp.MainWindow"
         Title="Анализатор дефектов" FontFamily="Times new roman"
@@ -102,7 +103,8 @@
 				</ScrollViewer>
 
 				<!--Для окошка с картинкой-->
-				<Border BorderThickness="2" BorderBrush="Gray" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="14" >
+				<Grid>
+					<Border BorderThickness="2" BorderBrush="Gray" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="14" >
 					<Grid>
 						<ItemsControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 								x:Name="ImgCanvas"
@@ -146,6 +148,13 @@
 						<Image Source="{Binding SourceImage}"/>
 					</Grid>
 				</Border>
+					<progRing:ProgressRing Width="80"
+                           Height="80"
+                           IsActive="{Binding IsPredictionLoading}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="LightBlue"/>
+				</Grid>
 
 
 			</DockPanel>

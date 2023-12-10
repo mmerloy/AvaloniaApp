@@ -63,7 +63,12 @@ public partial class App : Application
             cfg => cfg.AddProfile<AutoMapper.ModelsProfile>()
         );
 
-        collection.AddSingleton<IPredictionService>(s => new PredictionServiceStub(123));
+        //collection.AddSingleton<IPredictionService>(s => new PredictionServiceStub(123));
+        collection.AddSingleton<IPredictionService>(s => new PythonScriptPredictionService(
+            context.Configuration["pyScript"],
+            context.Configuration["tchModelPath"],
+            context.Configuration["outputImagesDirectoryPath"])
+        );
         collection.AddSingleton<MainWindowViewModel>();
 
         collection.AddSingleton<MethodConfigurationViewModelsLocator>();

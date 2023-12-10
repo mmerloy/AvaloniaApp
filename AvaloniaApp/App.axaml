@@ -9,7 +9,7 @@
 	<Application.Styles>
 		<FluentTheme />
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-
+		<StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>
 		<Style Selector="TabItem">
 			<Setter	Property="FontSize" Value="16"/>
 		</Style>

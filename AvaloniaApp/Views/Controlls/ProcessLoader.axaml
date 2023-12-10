@@ -1,0 +1,34 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:AvaloniaFirstApp.Views.Controlls">
+  <Design.PreviewWith>
+    <controls:ProcessLoader />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|ProcessLoader">
+	  <Style.Animations>
+		  <Animation Duration="0:0:3">
+			  <KeyFrame Cue="0%">
+				  <Setter Property="Opacity" Value="0.0"/>
+			  </KeyFrame>
+			  <KeyFrame Cue="50%">
+				  <Setter Property="Opacity" Value="1.0"/>
+			  </KeyFrame>
+			  <KeyFrame Cue="100%">
+				  <Setter Property="Opacity" Value="0.0"/>
+			  </KeyFrame>
+		  </Animation>
+	  </Style.Animations>
+	  
+    <Setter Property="Template">
+      <ControlTemplate>
+		  <Grid IsHitTestVisible="False"
+				IsVisible="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" 
+				>
+			  <Image Source="/Assets/Icons/miet_logo.png"/>
+		  </Grid>
+      </ControlTemplate>
+    </Setter>
+	  
+  </Style>
+</Styles>
