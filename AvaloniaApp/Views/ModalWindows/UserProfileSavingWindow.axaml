@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
+        x:Class="AvaloniaFirstApp.UserProfileSavingWindow"
+        Title="Присвоение имени сохраняемому профилю"
+		Width="400" Height="200"
+		>
+	<DockPanel>
+		<UniformGrid DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+			<Button x:Name="SaveBtn" Content="Сохранить" IsDefault="True" Margin="0 0 10 0"/>
+			<Button x:Name="CancelBtn" Content="Отмена" IsCancel="True"/>
+		</UniformGrid>
+		<TextBox x:Name="NameBox" Watermark="Введите имя..." BorderBrush="LightGray" BorderThickness="2"
+				 HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+	</DockPanel>
+	
+</Window>

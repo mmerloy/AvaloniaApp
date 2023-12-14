@@ -1,0 +1,180 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		     xmlns:vm="clr-namespace:AvaloniaFirstApp.ViewModels"
+		     xmlns:c="clr-namespace:AvaloniaFirstApp.Infrastructure.Converters"
+             x:Class="AvaloniaFirstApp.App"
+             RequestedThemeVariant="Light">
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+	<Application.Styles>
+		<FluentTheme />
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+		<StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>
+		<Style Selector="TabItem">
+			<Setter	Property="FontSize" Value="16"/>
+		</Style>
+
+		<Style Selector="NumericUpDown /template/ ButtonSpinner">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DataValidationErrors>
+						<Border Background="{TemplateBinding Background}"
+								BorderBrush="{TemplateBinding BorderBrush}"
+								BorderThickness="{TemplateBinding BorderThickness}"
+								CornerRadius="{TemplateBinding CornerRadius}"
+								MinHeight="{TemplateBinding MinHeight}">
+							<DockPanel>
+								<UniformGrid Rows="2" Name="PART_SpinnerPanel"
+											DockPanel.Dock="Right"
+											IsVisible="{TemplateBinding ShowButtonSpinner}">
+									<RepeatButton Name="PART_IncreaseButton"
+												  Classes="ButtonSpinnerRepeatButton"
+												  VerticalContentAlignment="Center"
+												  Foreground="{TemplateBinding Foreground}"
+												  BorderBrush="{TemplateBinding BorderBrush}"
+												  Background="{TemplateBinding Background}"
+												  FontSize="{TemplateBinding FontSize}">
+										<Path Fill="{TemplateBinding Foreground}"
+											  Width="16"
+											  Height="8"
+											  Stretch="Uniform"
+											  HorizontalAlignment="Center"
+											  VerticalAlignment="Center"
+											  Data="{StaticResource ButtonSpinnerIncreaseButtonIcon}" />
+									</RepeatButton>
+
+									<RepeatButton Name="PART_DecreaseButton"
+												  Classes="ButtonSpinnerRepeatButton"
+												  Foreground="{TemplateBinding Foreground}"
+												  BorderBrush="{TemplateBinding BorderBrush}"
+												  Background="{TemplateBinding Background}"
+												  VerticalContentAlignment="Center"
+												  FontSize="{TemplateBinding FontSize}">
+										<Path Fill="{TemplateBinding Foreground}"
+											  Width="16"
+											  Height="8"
+											  Stretch="Uniform"
+											  HorizontalAlignment="Center"
+											  VerticalAlignment="Center"
+											  Data="{StaticResource ButtonSpinnerDecreaseButtonIcon}" />
+									</RepeatButton>
+								</UniformGrid>
+
+								<ContentPresenter Name="PART_ContentPresenter"
+												  Grid.Column="1"
+												  ContentTemplate="{TemplateBinding ContentTemplate}"
+												  Content="{TemplateBinding Content}"
+												  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+												  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+												  Padding="{TemplateBinding Padding}" />
+							</DockPanel>
+						</Border>
+					</DataValidationErrors>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+
+		<!--Применение стиля ко всем HeaderedContentControl-->
+		<Style Selector="HeaderedContentControl">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="*"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+							<Border ZIndex="1" Padding="5,0" Background="{TemplateBinding Background}" HorizontalAlignment="Center" Grid.ColumnSpan="2">
+								<TextBlock TextBlock.FontWeight="Bold" Text="{TemplateBinding Header}" />
+							</Border>
+							<Border Padding="5" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0,10,0,0"
+								BorderBrush="{TemplateBinding BorderBrush}"
+								BorderThickness="{TemplateBinding BorderThickness}">
+								<ContentPresenter Content="{TemplateBinding Content}"/>
+							</Border>
+						</Grid>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Application.Styles>
+	
+	<!--Шаблоны отображения ViewModels--> 
+	<Application.DataTemplates>
+		<DataTemplate DataType="{x:Type vm:RecursialMethodConfigurationViewModel}">
+			<StackPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+								Margin="20 0 0 0"
+								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Неполное покрытие"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+							  Margin="20 0 0 0"
+							  Text="{Binding NotAllCoverage}"/>
+				</DockPanel>
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:InterpolationMethodConfigurationViewModel}">
+			<StackPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+								Margin="20 0 0 0"
+								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Кол-во интервалов"
+							   VerticalAlignment="Center" />
+					<NumericUpDown Value="{Binding InterpolationCount}" Maximum="10" Minimum="1" 
+								   VerticalContentAlignment="Center"/>
+				</DockPanel>
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:WeightCoefficientsMethodConfigurationViewModel}">
+			<StackPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Погрешность"
+							   VerticalAlignment="Center" />
+					<TextBox VerticalAlignment="Center"
+								Margin="20 0 0 0"
+								Text="{Binding Inaccuracy}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Яркость"
+							   VerticalAlignment="Center" />
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding Brightness}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Контрастность"
+							   VerticalAlignment="Center"/>
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding ContrastRatio}"/>
+				</DockPanel>
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Left" Text="Цвет"
+							   VerticalAlignment="Center" />
+					<CheckBox HorizontalAlignment="Right" IsChecked="{Binding Color}"/>
+				</DockPanel>
+			</StackPanel>
+		</DataTemplate>
+	</Application.DataTemplates>
+
+	<Application.Resources>
+		<c:RadioButtonsBoolToSearchObjectConverter x:Key="RadioButtonsBoolToSearchObjectConverter"/>
+		<c:RadioButtonsBoolToMethodConfigObjectConverter x:Key="RadioButtonsBoolToMethodConfigObjectConverter"/>
+		<c:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
+		
+		<vm:InterpolationMethodConfigurationViewModel x:Key="InterpolationMethodConfigurationViewModel"/>
+		<vm:WeightCoefficientsMethodConfigurationViewModel x:Key="WeightCoefficientsMethodConfigurationViewModel"/>
+		<vm:RecursialMethodConfigurationViewModel x:Key="RecursialMethodConfigurationViewModel"/>
+	</Application.Resources>
+</Application>
