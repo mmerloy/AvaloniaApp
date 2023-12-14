@@ -184,22 +184,23 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         CurrentImageRectangles.Clear();
 
         IsPredictionLoading = true;
-        
-        string imageWithRectsPath = await _predictionService.GetImageWithDefectsAsync(ImageStorageFile.Path.LocalPath);
-        ClearImage();
 
-        var topLevel = TopLevel.GetTopLevel(App.MainWindow) ?? throw new InvalidOperationException("Cannot get top level object.");
+        //string imageWithRectsPath = await _predictionService.GetImageWithDefectsAsync(ImageStorageFile.Path.LocalPath);
+        //ClearImage();
 
-        ImageStorageFile = await topLevel.StorageProvider.TryGetFileFromPathAsync(imageWithRectsPath)
-            ?? throw new InvalidOperationException("Incorrect output image path got from python script: " + imageWithRectsPath);
-        SourceImage = new Bitmap(ImageStorageFile.Path.LocalPath);
-        
+        //var topLevel = TopLevel.GetTopLevel(App.MainWindow) ?? throw new InvalidOperationException("Cannot get top level object.");
+
+        //ImageStorageFile = await topLevel.StorageProvider.TryGetFileFromPathAsync(imageWithRectsPath)
+        //    ?? throw new InvalidOperationException("Incorrect output image path got from python script: " + imageWithRectsPath);
+        //SourceImage = new Bitmap(ImageStorageFile.Path.LocalPath);
+
+        var defects = await _predictionService.GetDefectsFromImageAsync(ImageStorageFile.Path.LocalPath);
+
+        CurrentImageRectangles.AddRange(
+            defects.Select(d => d.Location).Select(ModifyRectByConfigs)
+        );
+
         IsPredictionLoading = false;
-        //var defects = await _predictionService.GetDefectsFromImageAsync(ImageStorageFile.Path.LocalPath);
-
-        //CurrentImageRectangles.AddRange(
-        //    defects.Select(d => d.Location).Select(ModifyRectByConfigs)
-        //);
     }
 
     public static bool MethodConfigViewModelEquals(MethodConfigurationViewModel x, MethodConfigurationViewModel y)
