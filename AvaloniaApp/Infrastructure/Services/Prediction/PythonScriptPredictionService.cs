@@ -112,7 +112,12 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
         return defects;
     }
 
-    private DefectType GetDefectTypeFromName(string defectName) { return DefectType.None; }
+    private static DefectType GetDefectTypeFromName(string defectName)
+    {
+        if (!Enum.TryParse(defectName, out DefectType defect))
+            throw new ArgumentException("Wrong defect name got.");
+        return defect;
+    }
 
     public async Task<string> GetImageWithDefectsAsync(string inputImagePath, CancellationToken cToken = default)
     {

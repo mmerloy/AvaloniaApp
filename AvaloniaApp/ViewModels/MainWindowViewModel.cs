@@ -15,11 +15,10 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
+using Utils;
 
 namespace AvaloniaFirstApp.ViewModels;
 
@@ -35,8 +34,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     private readonly IPredictionService _predictionService;
 
     public MainWindowViewModel(
-        ApplicationDbContext db, 
-        IMapper mapper, 
+        ApplicationDbContext db,
+        IMapper mapper,
         MethodConfigurationViewModelsLocator methodConfigurationLocator,
         IPredictionService predictionService)
     {
@@ -53,7 +52,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
     /// <summary>Данные о сохраненных прямоугольниках в координатах действительного источника изображения, не UI.</summary>
-    private Dictionary<MethodConfigurationViewModel, List<RectangleInfo>> _rectsConfigsData = new();
+    private readonly Dictionary<MethodConfigurationViewModel, List<RectangleInfo>> _rectsConfigsData = new();
 
     /// <summary>Конфиг, для передачи данных о размере поля, на котором прорисовываются прямоугольники.</summary>
     public PositioningConfigViewModel PositioningConfig { get; }
@@ -100,6 +99,10 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     public ObservableCollection<UserProfileModel> SavedUserProfiles { get; set; }
         = new();
 
+    public ObservableCollection<DefectModel> SavedDefects { get; set; }
+        = new();
+
+
     private UserProfileModel? _currentProfile = null;
     public UserProfileModel? SelectedUserProfile
     {
@@ -116,7 +119,7 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         SourceImage = null;
         if (_rectsConfigsData.TryGetValue(MethodConfigViewModel, out _))
             _rectsConfigsData[MethodConfigViewModel].Clear();
-        CurrentImageRectangles.Clear();
+        CurrentImageDefects.Clear();
     }
 
     /// <summary>
@@ -140,48 +143,15 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     }
 
     /// <summary>Прямоугольники, демонстрируемые на изображении в UI с координатами UI.</summary>
-    public ObservableCollection<RectangleInfo> CurrentImageRectangles { get; set; }
-        = new ObservableCollection<RectangleInfo>();
-
-    /// <summary>
-    /// Для создания прямоугольников на изображении 
-    /// (ошибки на плате)
-    /// </summary>
-    public async Task CreateRectangles()
-    {
-        if (ImageStorageFile is null)
-            return;
-
-        CurrentImageRectangles.Clear();
-
-        FileInfo file = new(ImageStorageFile.Path.LocalPath);
-        DirectoryInfo dir = file.Directory!;
-        string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
-        string rectsDataDirPath = Path.Combine(dir.FullName, datasDirName);
-
-        if (!Directory.Exists(rectsDataDirPath))
-            return;
-
-        string rectsDataFilePath = Path.Combine(rectsDataDirPath, rectsDataFileName);
-
-        if (!File.Exists(rectsDataFilePath))
-            return;
-
-        using var fileStream = File.OpenRead(rectsDataFilePath);
-
-        _rectsConfigsData = _rectsConfigsData = JsonSerializer.Deserialize<List<DictItem>>(fileStream, _jsonOptions)
-                .ToDictionary(i => i.Key, i => i.Value);
-
-        CurrentImageRectangles
-            .AddRange(_rectsConfigsData.Where(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).SelectMany(sr => sr.Value.Select(ModifyRectByConfigs)));
-    }
+    public ObservableCollection<DefectModel> CurrentImageDefects { get; set; }
+        = new ObservableCollection<DefectModel>();
 
     public async Task MakePrediction()
     {
         if (ImageStorageFile is null)
             return;
 
-        CurrentImageRectangles.Clear();
+        CurrentImageDefects.Clear();
 
         IsPredictionLoading = true;
 
@@ -196,8 +166,8 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         var defects = await _predictionService.GetDefectsFromImageAsync(ImageStorageFile.Path.LocalPath);
 
-        CurrentImageRectangles.AddRange(
-            defects.Select(d => d.Location).Select(ModifyRectByConfigs)
+        CurrentImageDefects.AddRange(
+            defects.Select(d => { d.Location = ModifyRectByConfigs(d.Location); return d; })
         );
 
         IsPredictionLoading = false;
@@ -217,27 +187,6 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
             return ((IEquatable<InterpolationMethodConfigurationViewModel>)x).Equals((InterpolationMethodConfigurationViewModel)y);
         else
             return false;
-    }
-
-    public void AddRectangleToImage(double startX, double startY, double endX, double endY)
-    {
-        RectanglePoint startPoint = new RectanglePoint()
-        {
-            X = startX,
-            Y = startY
-        };
-
-        double width = Math.Abs(startX - endX);
-        double height = Math.Abs(startY - endY);
-
-        var rectangleInfo = new RectangleInfo
-        {
-            StartPoint = startPoint,
-            Width = width,
-            Height = height
-        };
-
-        CurrentImageRectangles.Add(rectangleInfo);
     }
 
     //TODO: refactor
@@ -292,8 +241,6 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
             double kX = fieldWidth / imgSize.Width;
             double kY = fieldHeight / imgSize.Height;
 
-            //double k = Math.Min(kX, kY);
-
             rectClone.StartPoint.X /= kX;
             rectClone.StartPoint.Y /= kY;
 
@@ -309,78 +256,46 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         var list = _rectsConfigsData.FirstOrDefault(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).Value;
         if (list is not null)
         {
-            CurrentImageRectangles.Clear();
-            CurrentImageRectangles.AddRange(list.Select(ModifyRectByConfigs));
+            var modifiedDefectsRects = CurrentImageDefects.ModifyForEach(d => d.Location = ModifyRectByConfigs(d.Location));
+            CurrentImageDefects.Clear();
+            CurrentImageDefects.AddRange(modifiedDefectsRects);
         }
         else
         {
-            var imgRelatedRects = CurrentImageRectangles
-                .Select(uir => ModifyRectToSave(uir, oldFieldWidth, oldFieldHeight))
+            var imgRelatedRects = CurrentImageDefects
+                .ModifyForEach(d => d.Location = ModifyRectToSave(d.Location, oldFieldWidth, oldFieldHeight))
                 .ToList();
-            CurrentImageRectangles.Clear();
+            CurrentImageDefects.Clear();
             var newUIRelatedRects = imgRelatedRects
-                .Select(ModifyRectByConfigs)
+                .ModifyForEach(d => d.Location = ModifyRectByConfigs(d.Location))
                 .ToList();
-            CurrentImageRectangles.AddRange(newUIRelatedRects);
+            CurrentImageDefects.AddRange(newUIRelatedRects);
         }
-    }
-
-    private readonly string datasDirName = "data";
-
-    public void SaveRectanglesToFile()
-    {
-        if (ImageStorageFile is null)
-            return;
-
-        if (MethodConfigViewModel is null)
-            return;
-
-        FileInfo file = new(ImageStorageFile.Path.LocalPath);
-        DirectoryInfo dir = file.Directory!;
-        string rectsDataFileName = $"{ImageStorageFile.Name}.rects";
-        string rectsDataDirPath = Path.Combine(dir.FullName, datasDirName);
-
-        if (!Directory.Exists(rectsDataDirPath))
-            Directory.CreateDirectory(rectsDataDirPath);
-
-        string rectsDataFilePath = Path.Combine(rectsDataDirPath, rectsDataFileName);
-        if (File.Exists(rectsDataFilePath))
-        {
-            using var fileReadStream = File.OpenRead(rectsDataFilePath);
-            _rectsConfigsData = JsonSerializer.Deserialize<List<DictItem>>(fileReadStream, _jsonOptions)
-                .ToDictionary(i => i.Key, i => i.Value);
-        }
-
-        using var fileStream = File.Open(rectsDataFilePath, FileMode.Create);
-
-        double fieldWidth = PositioningConfig.XMultiplexer;
-        double fieldHeight = PositioningConfig.YMultiplexer;
-
-
-        var key = _rectsConfigsData.FirstOrDefault(p => MethodConfigViewModelEquals(p.Key, MethodConfigViewModel)).Key;
-        if (key is null)
-            key = MethodConfigViewModel;
-
-        _rectsConfigsData[key] = CurrentImageRectangles
-            .Select(uir => ModifyRectToSave(uir, fieldWidth, fieldHeight))
-            .ToList();
-
-        CurrentImageRectangles.Clear();
-
-        JsonSerializer.Serialize(fileStream, _rectsConfigsData.Select(x => new DictItem { Key = x.Key, Value = x.Value }).ToList(), _jsonOptions);
-        _rectsConfigsData.Clear();
     }
 
     public async Task SaveDefectsFromImage()
     {
-        IEnumerable<DefectModel> currentDefectsInfo = CurrentImageRectangles
-       .Select((r, i) => new DefectModel() { Location = r, Type = (DefectType)(i % 3) });
+        if (ImageStorageFile is null)
+            return;
 
-        IEnumerable<Defect> defectsToSave =
-            _mapper.Map<IEnumerable<Defect>>(currentDefectsInfo);
+        double fieldWidth = PositioningConfig.XMultiplexer;
+        double fieldHeight = PositioningConfig.YMultiplexer;
 
-        await _db.Defects.AddRangeAsync(defectsToSave);
+        ImageEntity imageEntity = new()
+        {
+            FullPath = ImageStorageFile.Path.LocalPath
+        };
+
+        List<Defect> defectsToSave =
+            _mapper.Map<IEnumerable<Defect>>(CurrentImageDefects.ModifyForEach(d => d.Location = ModifyRectToSave(d.Location, fieldWidth, fieldHeight)))
+            .ToList();
+
+
+        await _db.ImageEntities.AddAsync(imageEntity);
+        await _db.Defects.AddRangeAsync(defectsToSave.ModifyForEach(de => de.PredictedFromImage = imageEntity));
         await _db.SaveChangesAsync();
+
+        SavedDefects.AddRange(_mapper.Map<IEnumerable<DefectModel>>(defectsToSave));
     }
 
     public async Task SaveCurrentProfile()
@@ -437,6 +352,16 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
         );
         SavedUserProfiles.Clear();
         SavedUserProfiles.AddRange(profileModels);
+    }
+
+    /// <summary>Загрузка дефектов из БД.</summary>
+    public void LoadSavedDefects()
+    {
+        var defectsModels = _mapper.Map<IEnumerable<DefectModel>>(
+            _db.Defects.Include(d => d.PredictedFromImage).AsEnumerable()
+        );
+        SavedDefects.Clear();
+        SavedDefects.AddRange(defectsModels);
     }
 
     [Serializable]

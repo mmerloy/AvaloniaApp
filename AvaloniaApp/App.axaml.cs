@@ -37,6 +37,7 @@ public partial class App : Application
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database;
                 db.EnsureCreated();
+                db.Migrate();
             }
 
             MainWindow = new MainWindow()
@@ -65,9 +66,9 @@ public partial class App : Application
 
         //collection.AddSingleton<IPredictionService>(s => new PredictionServiceStub(123));
         collection.AddSingleton<IPredictionService>(s => new PythonScriptPredictionService(
-            context.Configuration["pyScript"],
-            context.Configuration["tchModelPath"],
-            context.Configuration["outputImagesDirectoryPath"])
+            context.Configuration["pyScript"]!,
+            context.Configuration["tchModelPath"]!,
+            context.Configuration["outputImagesDirectoryPath"]!)
         );
         collection.AddSingleton<MainWindowViewModel>();
 

@@ -35,14 +35,18 @@ namespace AvaloniaFirstApp.AutoMapper
                         StartX = s.Location.StartPoint.X,
                         StartY = s.Location.StartPoint.Y
                     }
+                ))
+                .ForMember(dest => dest.PredictedFromImage, opt => opt.MapFrom(
+                    s => new ImageEntity { FullPath = s.LoadFromFilePath }
                 ));
 
             CreateMap<Defect, DefectModel>()
                 .ForMember(d => d.Location, opt => opt.MapFrom(
                     s => new RectangleInfo() { StartPoint = new RectanglePoint() { X = s.Location.StartX, Y = s.Location.StartY } }
+                ))
+                .ForMember(d => d.LoadFromFilePath, opt => opt.MapFrom(
+                    s => s.PredictedFromImage.FullPath
                 ));
-
-
         }
     }
 }

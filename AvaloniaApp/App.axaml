@@ -171,7 +171,7 @@
 	<Application.Resources>
 		<c:RadioButtonsBoolToSearchObjectConverter x:Key="RadioButtonsBoolToSearchObjectConverter"/>
 		<c:RadioButtonsBoolToMethodConfigObjectConverter x:Key="RadioButtonsBoolToMethodConfigObjectConverter"/>
-		
+		<c:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
 		
 		<vm:InterpolationMethodConfigurationViewModel x:Key="InterpolationMethodConfigurationViewModel"/>
 		<vm:WeightCoefficientsMethodConfigurationViewModel x:Key="WeightCoefficientsMethodConfigurationViewModel"/>

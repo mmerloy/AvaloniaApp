@@ -9,4 +9,6 @@ public class DefectModel
     public required RectangleInfo Location { get; set; }
 
     public DefectType Type { get; set; }
+
+    public string LoadFromFilePath { get; set; } = null!;
 }

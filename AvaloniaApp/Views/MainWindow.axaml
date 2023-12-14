@@ -12,7 +12,7 @@
 		WindowState="Maximized" Icon="/Assets/Icons/miet_logo.png"
 		>
 	<Window.KeyBindings>
-		<KeyBinding Command="{Binding SaveRectanglesToFile}" Gesture="Ctrl+E"/>
+		<!--<KeyBinding Command="{Binding SaveRectanglesToFile}" Gesture="Ctrl+E"/>-->
 		<KeyBinding Command="{Binding SaveDefectsFromImage}" Gesture="Ctrl+D"/>
 	</Window.KeyBindings>
 
@@ -99,6 +99,7 @@
 									Click="SetBounds"/>
 						</StackPanel>
 						<Button HorizontalAlignment="Right" Content="Сохранить профиль" Command="{Binding SaveCurrentProfile}"/>
+						<Button HorizontalAlignment="Right" Content="Сохранить дефекты" Command="{Binding SaveDefectsFromImage}"/>
 					</StackPanel>
 				</ScrollViewer>
 
@@ -109,15 +110,13 @@
 						<ItemsControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 								x:Name="ImgCanvas"
 								x:CompileBindings="False"
-								ItemsSource="{Binding CurrentImageRectangles}"
+								ItemsSource="{Binding CurrentImageDefects}"
 								SizeChanged="OnImgCanvasSizeChanged" ZIndex="1"
 					>
 
 							<ItemsControl.ItemsPanel>
 								<ItemsPanelTemplate>
 									<Canvas
-										PointerPressed="OnPointerPressed"
-										PointerReleased="OnPointerReleased"
 										Background="Transparent"
 								>
 										<!--<Canvas.Background>
@@ -129,16 +128,18 @@
 
 							<ItemsControl.Styles>
 								<Style Selector="ItemsControl > ContentPresenter">
-									<Setter Property="Canvas.Left" Value="{Binding StartPoint.X}"/>
-									<Setter Property="Canvas.Top" Value="{Binding StartPoint.Y}"/>
+									<Setter Property="Canvas.Left" Value="{Binding Location.StartPoint.X}"/>
+									<Setter Property="Canvas.Top" Value="{Binding Location.StartPoint.Y}"/>
 								</Style>
 							</ItemsControl.Styles>
 
 							<ItemsControl.ItemTemplate>
-								<DataTemplate DataType="{x:Type m:RectangleInfo}">
-									<Rectangle Width="{Binding Width}"
-											   Height="{Binding Height}"
-											   Stroke="Red" StrokeThickness="2"/>
+								<DataTemplate DataType="{x:Type m:DefectModel}">
+									<HeaderedContentControl Header="{Binding Type, Converter={StaticResource EnumToDescriptionConverter}}" Foreground="Orange">
+										<Rectangle Width="{Binding Location.Width}"
+												   Height="{Binding Location.Height}"
+												   Stroke="Orange" StrokeThickness="2"/>				
+									</HeaderedContentControl>
 								</DataTemplate>
 							</ItemsControl.ItemTemplate>
 
@@ -177,6 +178,26 @@
 					<DataGrid.Columns>
 						<DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
 						<DataGridTextColumn Header="Наименование" Binding="{Binding Title}"/>
+					</DataGrid.Columns>
+				</DataGrid>
+			</DockPanel>
+		</TabItem>
+
+		<TabItem Header="Дефекты">
+			<DockPanel>
+				<UniformGrid DockPanel.Dock="Top" HorizontalAlignment="Left">
+					<Button Content="Обновить список" Command="{Binding LoadSavedDefects}"/>
+				</UniformGrid>
+
+				<DataGrid ItemsSource="{Binding SavedDefects}"
+						  AutoGenerateColumns="False"
+						  IsReadOnly="True" SelectionMode="Single"
+						  HorizontalAlignment="Left"
+						  >
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
+						<DataGridTextColumn Header="Тип" Binding="{Binding Type, Converter={StaticResource EnumToDescriptionConverter}, Mode=OneWay}"/>
+						<DataGridTextColumn Header="Путь до файла" Binding="{Binding LoadFromFilePath}"/>
 					</DataGrid.Columns>
 				</DataGrid>
 			</DockPanel>

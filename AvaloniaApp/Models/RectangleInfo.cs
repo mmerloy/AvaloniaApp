@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Media;
+using System;
 using System.Diagnostics;
 
 namespace AvaloniaFirstApp.Models;
@@ -20,4 +21,6 @@ public class RectangleInfo : ICloneable<RectangleInfo>
             Width = Width,
             Height = Height
         };
+
+    public Color Color { get; set; }
 }

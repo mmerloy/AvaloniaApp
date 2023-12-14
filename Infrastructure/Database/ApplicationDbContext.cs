@@ -16,6 +16,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<MethodConfiguration> MethodConfigurations { get; set; }
 
+    public DbSet<ImageEntity> ImageEntities { get; set; }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> contextOptions) : base(contextOptions)
     { }
 
