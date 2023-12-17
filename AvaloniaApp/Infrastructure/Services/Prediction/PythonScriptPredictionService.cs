@@ -19,16 +19,19 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
     private readonly StreamReader _pythonScriptOutput;
     private bool _firstRead = true;
 
+    private const string _imagePathPrompt = "Введите путь к входному изображению:";
+    private const string _mLModelPathPrompt = "Введите путь модели нейронной сети:";
+    private const string _outputDirPathPrompt = "Введите путь папки для сохранения размеченных изображений:";
+
     public PythonScriptPredictionService(string pythonScriptPath, string inputModelPath, string outputImagesDirectoryPath)
     {
         _pythonScriptProcess = Process.Start(new ProcessStartInfo()
         {
-            FileName = "python.exe",
-            Arguments = pythonScriptPath,
+            FileName = pythonScriptPath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardInput = true
-        }) ?? throw new ArgumentException("Cannot start python script process with argument " + pythonScriptPath);
+        }) ?? throw new ArgumentException("Cannot start python script process " + pythonScriptPath);
 
         _pythonScriptInput = _pythonScriptProcess.StandardInput;
         _pythonScriptOutput = _pythonScriptProcess.StandardOutput;
@@ -42,7 +45,7 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
 
     public async Task<IEnumerable<DefectModel>> GetDefectsFromImageAsync(string imagePath, CancellationToken cToken = default)
     {
-        await CheckFirstReadAsync(cToken);
+        await ReadToPrompt(_imagePathPrompt, cToken);
 
         await _pythonScriptInput.WriteLineAsync(imagePath);
 
@@ -121,7 +124,7 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
 
     public async Task<string> GetImageWithDefectsAsync(string inputImagePath, CancellationToken cToken = default)
     {
-        await CheckFirstReadAsync(cToken);
+        await ReadToPrompt(_imagePathPrompt, cToken);
 
         await _pythonScriptInput.WriteLineAsync(inputImagePath);
 
@@ -145,14 +148,14 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
         return (outputImagePath, defectsInformationPath);
     }
 
-    private async Task CheckFirstReadAsync(CancellationToken cToken = default)
+    private async Task ReadToPrompt(string prompt, CancellationToken cToken = default)
     {
-        if (_firstRead)
+        string? inputString;
+        do
         {
-            await SkipOutputLineAsync(cToken);
-            await SkipOutputLineAsync(cToken);
-            _firstRead = false;
-        }
+            inputString = await _pythonScriptOutput.ReadLineAsync(cToken);
+
+        } while (inputString != prompt);
     }
 
     public void Dispose()

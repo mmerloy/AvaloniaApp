@@ -1,7 +1,6 @@
 ﻿using Avalonia;
-using AvaloniaFirstApp.ViewModels;
+using AvaloniaFirstApp.Views.ModalWindows;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 
@@ -15,9 +14,22 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        try
+        {
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            HandleAllExceptions(ex);
+        }
+    }
 
+    private static void HandleAllExceptions(Exception ex)
+    {
+        ExceptionHandlingWindow exWindow = new(ex);
+        exWindow.Show(App.MainWindow!);
+        throw ex;
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

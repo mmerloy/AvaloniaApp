@@ -36,7 +36,7 @@ public partial class App : Application
             using (var scope = Host.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database;
-                db.EnsureCreated();
+                //db.EnsureCreated();
                 db.Migrate();
             }
 
@@ -55,7 +55,7 @@ public partial class App : Application
         collection.AddDbContext<ApplicationDbContext>(
             cfg =>
             {
-                cfg.UseSqlite(context.Configuration.GetConnectionString("SQLite"),
+                cfg.UseSqlite($"Data Source=\"{context.Configuration["SQLitePath"]}\"",
                     lc => lc.MigrationsAssembly("DAL.SQLight")
                 );
             }, ServiceLifetime.Singleton);

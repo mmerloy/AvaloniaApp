@@ -39,4 +39,8 @@
 		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 		<ProjectReference Include="..\Utils\Utils.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <UpToDateCheckInput Remove="Views\ModalWindows\ExceptionHandlingWindow.axaml" />
+	</ItemGroup>
 </Project>
