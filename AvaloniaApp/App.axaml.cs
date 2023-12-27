@@ -3,16 +3,14 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using AvaloniaFirstApp.Infrastructure.Services;
+using AvaloniaFirstApp.Infrastructure.Services.Notifications;
 using AvaloniaFirstApp.Infrastructure.Services.Prediction;
 using AvaloniaFirstApp.ViewModels;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Linq;
-using System.Reflection;
 
 namespace AvaloniaFirstApp;
 
@@ -45,9 +43,18 @@ public partial class App : Application
                 DataContext = Host.Services.GetRequiredService<MainWindowViewModel>()
             };
             desktop.MainWindow = MainWindow;
+            desktop.Exit += DisableHost;
         }
-
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private async void DisableHost(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        if (Host is null)
+            return;
+        
+        await Host.StopAsync();
+        Host.Dispose();
     }
 
     internal static void ConfigureServices(HostBuilderContext context, IServiceCollection collection)
@@ -72,7 +79,8 @@ public partial class App : Application
         );
         collection.AddSingleton<MainWindowViewModel>();
 
-        collection.AddSingleton<MethodConfigurationViewModelsLocator>();
+        collection.AddSingleton<INotifier, MessageBoxNotifier>();
 
+        collection.AddSingleton<MethodConfigurationViewModelsLocator>();
     }
 }

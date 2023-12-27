@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using AvaloniaFirstApp.Infrastructure.Services;
+using AvaloniaFirstApp.Infrastructure.Services.Notifications;
 using AvaloniaFirstApp.Infrastructure.Services.Prediction;
 using AvaloniaFirstApp.Models;
 using Domain;
@@ -32,17 +33,20 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
     private readonly IMapper _mapper;
     private readonly MethodConfigurationViewModelsLocator _methodConfigurationLocator;
     private readonly IPredictionService _predictionService;
+    private readonly INotifier _notifier;
 
     public MainWindowViewModel(
         ApplicationDbContext db,
         IMapper mapper,
         MethodConfigurationViewModelsLocator methodConfigurationLocator,
-        IPredictionService predictionService)
+        IPredictionService predictionService,
+        INotifier notifier)
     {
         _db = db;
         _mapper = mapper;
         _methodConfigurationLocator = methodConfigurationLocator;
         _predictionService = predictionService;
+        _notifier = notifier;
         MethodConfigViewModel = _methodConfigurationLocator.GetLocatedMethodConfigViewModelOrDefault(MethodConfigType.Interpolation);
 
         PositioningConfig = new();
@@ -153,24 +157,32 @@ public class MainWindowViewModel : ReactiveUI.ReactiveObject
 
         CurrentImageDefects.Clear();
 
+        IEnumerable<DefectModel>? defects;
+
         IsPredictionLoading = true;
-
-        //string imageWithRectsPath = await _predictionService.GetImageWithDefectsAsync(ImageStorageFile.Path.LocalPath);
-        //ClearImage();
-
-        //var topLevel = TopLevel.GetTopLevel(App.MainWindow) ?? throw new InvalidOperationException("Cannot get top level object.");
-
-        //ImageStorageFile = await topLevel.StorageProvider.TryGetFileFromPathAsync(imageWithRectsPath)
-        //    ?? throw new InvalidOperationException("Incorrect output image path got from python script: " + imageWithRectsPath);
-        //SourceImage = new Bitmap(ImageStorageFile.Path.LocalPath);
-
-        var defects = await _predictionService.GetDefectsFromImageAsync(ImageStorageFile.Path.LocalPath);
+        try
+        {
+            defects = await _predictionService.GetDefectsFromImageAsync(ImageStorageFile.Path.LocalPath);
+        }
+        finally
+        {
+            IsPredictionLoading = false;
+        }
+        if (defects is null)
+        {
+            await _notifier.NotifyErrorAsync("Невозможно обнаружить дефекты на данном изображении.");
+            return;
+        }
+        if(defects.IsEmpty())
+        {
+            await _notifier.NotifyWarningAsync("Дефекты не найдены.");
+            return;
+        }
 
         CurrentImageDefects.AddRange(
             defects.Select(d => { d.Location = ModifyRectByConfigs(d.Location); return d; })
         );
 
-        IsPredictionLoading = false;
     }
 
     public static bool MethodConfigViewModelEquals(MethodConfigurationViewModel x, MethodConfigurationViewModel y)

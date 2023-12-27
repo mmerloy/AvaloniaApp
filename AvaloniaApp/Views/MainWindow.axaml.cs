@@ -1,9 +1,6 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using AvaloniaFirstApp.ViewModels;
-using System;
 
 
 namespace AvaloniaFirstApp;

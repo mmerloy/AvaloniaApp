@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -17,22 +18,30 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
     private readonly Process _pythonScriptProcess;
     private readonly StreamWriter _pythonScriptInput;
     private readonly StreamReader _pythonScriptOutput;
-    private bool _firstRead = true;
 
     private const string _imagePathPrompt = "Введите путь к входному изображению:";
     private const string _mLModelPathPrompt = "Введите путь модели нейронной сети:";
     private const string _outputDirPathPrompt = "Введите путь папки для сохранения размеченных изображений:";
+    private const string _defectsNotFoundedPrompt = "Дефектов не выявлено";
+    private const string _defectsExistPrompt = "Выявлены дефекты";
+    private const string _pyExceptionCatch = "An exception occurred";
+    //private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public PythonScriptPredictionService(string pythonScriptPath, string inputModelPath, string outputImagesDirectoryPath)
     {
+        bool isExecutable = pythonScriptPath.EndsWith(".exe");
+        string executableFile = isExecutable ? pythonScriptPath : "python.exe";
+        string executingArgs = isExecutable ? string.Empty : pythonScriptPath;
+
         _pythonScriptProcess = Process.Start(new ProcessStartInfo()
         {
-            FileName = pythonScriptPath,
-            UseShellExecute = false,
+            FileName = executableFile,
+            Arguments = executingArgs,
             RedirectStandardOutput = true,
             RedirectStandardInput = true
-        }) ?? throw new ArgumentException("Cannot start python script process " + pythonScriptPath);
+        }) ?? throw new ArgumentException($"Cannot start python script process {executableFile} with args {executingArgs ?? "no args"}");
 
+        //_pythonScriptProcess.OutputDataReceived += PyProcessOutputLineReceived;
         _pythonScriptInput = _pythonScriptProcess.StandardInput;
         _pythonScriptOutput = _pythonScriptProcess.StandardOutput;
 
@@ -43,13 +52,21 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
         Thread.Sleep(TimeSpan.FromSeconds(3));
     }
 
-    public async Task<IEnumerable<DefectModel>> GetDefectsFromImageAsync(string imagePath, CancellationToken cToken = default)
+    public async Task<IEnumerable<DefectModel>?> GetDefectsFromImageAsync(string imagePath, CancellationToken cToken = default)
     {
         await ReadToPrompt(_imagePathPrompt, cToken);
 
         await _pythonScriptInput.WriteLineAsync(imagePath);
 
-        var (outputImagePath, defectsInformationXmlFilePath) = await GetInfoFromOutputAsync(cToken);
+        MLAnswer mLAnswer = await ReadToSuccessOrNotPrompt(cToken);
+
+        if (mLAnswer == MLAnswer.DefectsNotFound)
+            return Enumerable.Empty<DefectModel>();
+
+        if (mLAnswer == MLAnswer.Error)
+            return null;
+
+        var (outputImagePath, defectsInformationXmlFilePath) = await GetDefectsInfoFromOutputAsync(cToken);
 
         using var fileStream = new FileStream(defectsInformationXmlFilePath, FileMode.Open);
         XmlDocument xmlDocument = new();
@@ -128,15 +145,12 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
 
         await _pythonScriptInput.WriteLineAsync(inputImagePath);
 
-        var (outputImagePath, _) = await GetInfoFromOutputAsync(cToken);
+        var (outputImagePath, _) = await GetDefectsInfoFromOutputAsync(cToken);
 
         return outputImagePath;
     }
 
-    private Task SkipOutputLineAsync(CancellationToken cToken = default)
-        => _pythonScriptOutput.ReadLineAsync(cToken).AsTask();
-
-    private async Task<(string ProccessedImagePath, string DefectsInformationPath)> GetInfoFromOutputAsync(CancellationToken cToken = default)
+    private async Task<(string ProccessedImagePath, string DefectsInformationPath)> GetDefectsInfoFromOutputAsync(CancellationToken cToken = default)
     {
         string? outputImagePath = await _pythonScriptOutput.ReadLineAsync(cToken);
         if (outputImagePath is null)
@@ -146,6 +160,29 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
             throw new InvalidOperationException("Cannot read output defects path from python script " + _pythonScriptProcess.StartInfo.Arguments);
 
         return (outputImagePath, defectsInformationPath);
+    }
+
+    private enum MLAnswer : byte
+    {
+        Success = 0,
+        DefectsNotFound,
+        Error
+    }
+
+    private async Task<MLAnswer> ReadToSuccessOrNotPrompt(CancellationToken cToken = default)
+    {
+        string? inputString;
+        do
+        {
+            inputString = await _pythonScriptOutput.ReadLineAsync(cToken);
+        } while (inputString != _defectsExistPrompt && inputString != _defectsNotFoundedPrompt && inputString != _pyExceptionCatch);
+
+        return inputString switch
+        {
+            _defectsExistPrompt => MLAnswer.Success,
+            _defectsNotFoundedPrompt => MLAnswer.DefectsNotFound,
+            _ => MLAnswer.Error,
+        };
     }
 
     private async Task ReadToPrompt(string prompt, CancellationToken cToken = default)
@@ -160,8 +197,10 @@ public sealed class PythonScriptPredictionService : IPredictionService, IDisposa
 
     public void Dispose()
     {
-        _pythonScriptOutput.Dispose();
-        _pythonScriptInput.Dispose();
+        //_pythonScriptOutput.Dispose();
+        //_pythonScriptInput.Dispose();
+        //_pythonScriptProcess.CloseMainWindow();
+        _pythonScriptProcess.Close();
         _pythonScriptProcess.Dispose();
     }
 }

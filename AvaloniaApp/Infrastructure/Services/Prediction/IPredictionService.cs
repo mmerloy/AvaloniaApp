@@ -7,7 +7,7 @@ namespace AvaloniaFirstApp.Infrastructure.Services.Prediction;
 
 public interface IPredictionService
 {
-    Task<IEnumerable<DefectModel>> GetDefectsFromImageAsync(string imagePath, CancellationToken cToken = default);
+    Task<IEnumerable<DefectModel>?> GetDefectsFromImageAsync(string imagePath, CancellationToken cToken = default);
 
     /// <summary>
     /// Получить картинку с отображенными дефектами.

@@ -10,4 +10,7 @@ public static class EnumerableExtensions
         
         return source;
     }
+
+    public static bool IsEmpty<T>(this IEnumerable<T> source)
+        => !source.Any();
 }
